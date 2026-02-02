@@ -1,0 +1,27 @@
+# Test
+/src/test/
+
+# Maven / Java build output
+/target/
+*.class
+
+# Logs
+*.log
+
+# VS Code
+/.vscode/
+
+# IntelliJ IDEA
+/.idea/
+*.iml
+
+# Test sources
+/src/test/
+
+# Eclipse
+.project
+.classpath
+/.settings/
+
+# OS files
+.DS_Store
