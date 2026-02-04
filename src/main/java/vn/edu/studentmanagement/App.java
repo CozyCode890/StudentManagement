@@ -60,6 +60,7 @@ public class App {
 
   private static void ensureFileExists() {
     try {
+      Files.createDirectories(CSV_PATH.getParent()); // create ~/.student-manager
       if (Files.notExists(CSV_PATH)) {
         Files.createFile(CSV_PATH);
       }
