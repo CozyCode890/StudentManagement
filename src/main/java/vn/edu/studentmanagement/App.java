@@ -6,23 +6,12 @@ import java.nio.file.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.storage.CsvStudentRepository;
+import vn.edu.studentmanagement.model.Student;
+
 public class App {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
-  private static final Path CSV_PATH = Paths.get(
-      System.getProperty("user.home"),
-      ".student-manager",
-      "students.csv");
-
-  // Simple record-like class (works on Java 8+)
-  private static class Student {
-    int stt;
-    String name;
-
-    Student(int stt, String name) {
-      this.stt = stt;
-      this.name = name;
-    }
-  }
+  private static final Path CSV_PATH = CsvStudentRepository.CSV_PATH;
 
   public static void main(String[] args) {
     ensureFileExists();
@@ -60,6 +49,7 @@ public class App {
 
   private static void ensureFileExists() {
     try {
+      Files.createDirectories(CSV_PATH.getParent()); // create ~/.student-manager
       if (Files.notExists(CSV_PATH)) {
         Files.createFile(CSV_PATH);
       }
@@ -103,7 +93,7 @@ public class App {
 
   private static void writeAll(List<Student> students) {
     List<String> lines = students.stream()
-        .map(s -> s.stt + "," + s.name)
+        .map(s -> s.getName() + "," + s.getName())
         .collect(Collectors.toList());
     try {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
@@ -124,8 +114,8 @@ public class App {
     int nameWidth = Math.max(4, "Name".length());
 
     for (Student s : students) {
-      sttWidth = Math.max(sttWidth, String.valueOf(s.stt).length());
-      nameWidth = Math.max(nameWidth, s.name.length());
+      sttWidth = Math.max(sttWidth, String.valueOf(s.getStt()).length());
+      nameWidth = Math.max(nameWidth, s.getName().length());
     }
 
     String border = "+" + "-".repeat(sttWidth + 2) + "+" + "-".repeat(nameWidth + 2) + "+";
@@ -137,7 +127,7 @@ public class App {
     System.out.println(border);
 
     for (Student s : students) {
-      System.out.printf("| %-" + sttWidth + "d | %-" + nameWidth + "s |%n", s.stt, s.name);
+      System.out.printf("| %-" + sttWidth + "d | %-" + nameWidth + "s |%n", s.getStt(), s.getName());
     }
 
     System.out.println(border);
@@ -159,7 +149,7 @@ public class App {
     List<Student> students = readAll();
     int nextStt = 1;
     if (!students.isEmpty()) {
-      nextStt = students.get(students.size() - 1).stt + 1; // keep file order, no sorting
+      nextStt = students.get(students.size() - 1).getStt() + 1; // keep file order, no sorting
     }
 
     students.add(new Student(nextStt, name));
@@ -197,7 +187,7 @@ public class App {
     boolean removed = false;
     List<Student> newList = new ArrayList<>();
     for (Student s : students) {
-      if (s.stt == sttToDelete && !removed) {
+      if (s.getStt() == sttToDelete && !removed) {
         removed = true;
         continue; // skip this one
       }
