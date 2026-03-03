@@ -14,7 +14,7 @@ public class App {
   private static final Path CSV_PATH = CsvStudentRepository.CSV_PATH;
 
   public static void main(String[] args) {
-    ensureFileExists();
+    CsvStudentRepository repo = new CsvStudentRepository();
 
     while (true) {
       printMenu();
@@ -45,18 +45,6 @@ public class App {
     System.out.println("0) Exit");
     System.out.println("q) Quit");
     System.out.print("Choose: ");
-  }
-
-  private static void ensureFileExists() {
-    try {
-      Files.createDirectories(CSV_PATH.getParent()); // create ~/.student-manager
-      if (Files.notExists(CSV_PATH)) {
-        Files.createFile(CSV_PATH);
-      }
-    } catch (IOException e) {
-      System.err.println("Failed to create/open CSV file: " + e.getMessage());
-      System.exit(1);
-    }
   }
 
   private static List<Student> readAll() {
