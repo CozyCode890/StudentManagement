@@ -1,31 +1,55 @@
 package vn.edu.studentmanagement.model;
 
 public class Student {
-  private int stt;
-  private String name;
-
+  private int id;
+  private String fullname;
+  private String major;
+  private String gender;
   public Student() {
   }
 
-  public Student(int stt, String name) {
-    this.stt = stt;
-    this.name = name;
+  public Student(int id, String fullname, String major, String gender) {
+    this.id = id;
+    this.fullname = fullname;
+    this.major = major;
+    this.gender = gender;
   }
 
-  public int getStt() {
-    return stt;
+  public int getId() {
+    return id;
   }
 
-  public void setStt(int stt) {
-    this.stt = stt;
+  public void setId(int id) {
+    this.id = id;
   }
 
-  public String getName() {
-    return name;
+  public String getFullname() {
+    return fullname;
   }
 
-  public void setName(String name) {
-    this.name = name;
+  public void setFullname(String fullname) {
+    this.fullname = fullname;
+  }
+
+  public String getMajor() {
+    return major;
+  }
+
+  public void setMajor(String major) {
+    this.major = major;
+  }
+  public String getGender() {
+    return gender;
+  }
+  public void setGender(String gender) {
+    this.gender = gender; 
+  }
+  public String getLastname(){
+    if(fullname != null && fullname.contains(" ")){
+      String[] parts = fullname.split(" ");
+      return parts[parts.length - 1];
+    }
+    return null;
   }
 
 }
