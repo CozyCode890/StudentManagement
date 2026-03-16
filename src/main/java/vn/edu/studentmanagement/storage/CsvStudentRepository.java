@@ -15,13 +15,13 @@ import vn.edu.studentmanagement.model.Student;
 
 public class CsvStudentRepository {
   public static final Path CSV_PATH = Paths.get(
-      System.getProperty("user.home"),
-      ".student-manager",
-      "students.csv");
+          System.getProperty("user.home"),
+          ".student-manager",
+          "students.csv");
 
   public static void ensureFileExists() {
     try {
-      Files.createDirectories(CSV_PATH.getParent()); // create ~/.student-manager
+      Files.createDirectories(CSV_PATH.getParent());
       if (Files.notExists(CSV_PATH)) {
         Files.createFile(CSV_PATH);
       }
@@ -32,26 +32,24 @@ public class CsvStudentRepository {
   }
 
   public static List<Student> readAll() {
+    ensureFileExists();
     try {
       List<String> lines = Files.readAllLines(CSV_PATH, StandardCharsets.UTF_8);
       List<Student> students = new ArrayList<>();
 
       for (String line : lines) {
-        line = line.trim();
-        if (line.isEmpty())
-          continue;
+        if (line.trim().isEmpty()) continue;
 
-        // CSV is: stt,name (name may include commas in theory; we keep it simple)
-        int comma = line.indexOf(',');
-        if (comma <= 0)
-          continue;
-
-        String sttStr = line.substring(0, comma).trim();
-        String name = line.substring(comma + 1).trim();
+        // CSV format: id,fullname,major,gender
+        String[] parts = line.split(",");
+        if (parts.length < 4) continue;
 
         try {
-          int stt = Integer.parseInt(sttStr);
-          students.add(new Student(stt, name));
+          int id = Integer.parseInt(parts[0].trim());
+          String fullname = parts[1].trim();
+          String major = parts[2].trim();
+          String gender = parts[3].trim();
+          students.add(new Student(id, fullname, major, gender));
         } catch (NumberFormatException ignored) {
           // skip malformed lines
         }
@@ -65,25 +63,27 @@ public class CsvStudentRepository {
 
   public static void writeAll(List<Student> students) {
     List<String> lines = students.stream()
-        .map(s -> s.getStt() + "," + s.getName())
-        .collect(Collectors.toList());
+            .map(s -> s.getId() + "," + s.getFullname() + "," + s.getMajor() + "," + s.getGender())
+            .collect(Collectors.toList());
     try {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
-          StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
+              StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
       System.err.println("Failed to write CSV: " + e.getMessage());
     }
   }
 
   public static void append(Student student) {
+    String line = student.getId() + "," + student.getFullname() + "," + student.getMajor() + "," + student.getGender() + System.lineSeparator();
     try {
       Files.writeString(
-          CSV_PATH,
-          student.getStt() + "," + student.getName() + System.lineSeparator(),
-          StandardCharsets.UTF_8,
-          StandardOpenOption.APPEND);
+              CSV_PATH,
+              line,
+              StandardCharsets.UTF_8,
+              StandardOpenOption.CREATE,
+              StandardOpenOption.APPEND);
     } catch (IOException e) {
-      throw new RuntimeException("Failed to append to CSV", e);
+      System.err.println("Failed to append to CSV: " + e.getMessage());
     }
   }
 }
