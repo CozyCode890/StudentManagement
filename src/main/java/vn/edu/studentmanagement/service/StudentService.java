@@ -22,6 +22,26 @@ public class StudentService {
             .sorted(Comparator.comparingInt(Student::getId))
             .collect(Collectors.toList());
   }
+  public List<Student> searchStudents(String query) {
+    if (query == null || query.trim().isEmpty()) {
+      return findAll();
+    }
+
+    String lowerQuery = query.toLowerCase().trim();
+
+    return getStudents().stream()
+            .filter(student ->
+                    // Matches ID
+                    String.valueOf(student.getId()).contains(lowerQuery) ||
+                            // Matches Full Name (Searching by Last Name)
+                            (student.getLastname() != null && student.getLastname().toLowerCase().contains(lowerQuery)) ||
+                            // Matches Gender
+                            (student.getGender() != null && student.getGender().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
+                            // Matches Major
+                            (student.getMajor() != null && student.getMajor().toLowerCase().contains(lowerQuery))
+            )
+            .collect(Collectors.toList());
+  }
 
   public List<Student> findAllSortedByLastName() {
     return getStudents().stream()
@@ -30,19 +50,37 @@ public class StudentService {
   }
 
   // FIXED: Corrected constructor arguments and method names (getId instead of getStt)
-  public Student addStudent(String name, String major, String gender) {
+  private void validateStudentData(String name, String major, String gender) {
     if (name == null || name.trim().isEmpty()) {
-      throw new IllegalArgumentException("Name cannot be empty.");
+      throw new IllegalArgumentException("Student name is required.");
+    }
+    if (major == null || major.trim().isEmpty()) {
+      throw new IllegalArgumentException("Major is required.");
+    }
+    if (gender == null || gender.trim().isEmpty()) {
+      throw new IllegalArgumentException("Gender is required.");
     }
 
-    name = name.trim().replace(",", " ");
+    // Example of specific business logic:
+    // Only allow specific gender strings
+    String g = gender.trim().toLowerCase();
+    if (!g.equals("male") && !g.equals("female") && !g.equals("other")) {
+      throw new IllegalArgumentException("Gender must be 'Male', 'Female', or 'Other'.");
+    }
+  }
+  public Student addStudent(String name, String major, String gender) {
+    // 1. Validate the data first
+    validateStudentData(name, major, gender);
+
+    // 2. Sanitize inputs (remove commas to prevent CSV breakage)
+    String cleanName = name.trim().replace(",", " ");
+    String cleanMajor = major.trim().replace(",", " ");
+    String cleanGender = gender.trim().replace(",", " ");
 
     List<Student> students = getStudents();
-    // Changed getStt() to getId()
     int nextId = students.isEmpty() ? 1 : students.get(students.size() - 1).getId() + 1;
 
-    // FIXED: Now matches the 4-arg constructor in Student.java
-    Student student = new Student(nextId, name, major, gender);
+    Student student = new Student(nextId, cleanName, cleanMajor, cleanGender);
     CsvStudentRepository.append(student);
 
     return student;
@@ -71,6 +109,7 @@ public class StudentService {
       return deletedStudent;
     } else {
       throw new IllegalArgumentException("ID not found: " + idToDelete);
+
     }
   }
 }
