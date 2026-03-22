@@ -1,55 +1,88 @@
 package vn.edu.studentmanagement.model;
 
+import java.util.Objects;
+
 public class Student {
-  private int id;
-  private String fullname;
-  private String major;
-  private String gender;
-  public Student() {
-  }
+  private String id;
+  private String fullName;
+  private Gender gender;
+  private Major major;
+  private int age;
 
-  public Student(int id, String fullname, String major, String gender) {
+  public Student() {}
+
+  public Student(String id, String fullName, Gender gender, Major major, int age) {
     this.id = id;
-    this.fullname = fullname;
-    this.major = major;
+    this.fullName = fullName;
     this.gender = gender;
+    this.major = major;
+    this.age = age;
   }
 
-  public int getId() {
+  public String getId() {
     return id;
   }
 
-  public void setId(int id) {
+  public void setId(String id) {
     this.id = id;
   }
 
-  public String getFullname() {
-    return fullname;
+  public String getFullName() {
+    return fullName;
   }
 
-  public void setFullname(String fullname) {
-    this.fullname = fullname;
+  public void setFullName(String fullName) {
+    this.fullName = fullName;
   }
 
-  public String getMajor() {
+  public Gender getGender() {
+    return gender;
+  }
+
+  public void setGender(Gender gender) {
+    this.gender = gender;
+  }
+
+  public Major getMajor() {
     return major;
   }
 
-  public void setMajor(String major) {
+  public void setMajor(Major major) {
     this.major = major;
   }
-  public String getGender() {
-    return gender;
-  }
-  public void setGender(String gender) {
-    this.gender = gender; 
-  }
-  public String getLastname(){
-    if(fullname != null && fullname.contains(" ")){
-      String[] parts = fullname.split(" ");
-      return parts[parts.length - 1];
-    }
-    return null;
+
+  public int getAge() {
+    return age;
   }
 
+  public void setAge(int age) {
+    this.age = age;
+  }
+
+  /**
+   * Last name is extracted from the last non-empty token of {@link #fullName}.
+   */
+  public String getLastName() {
+    if (fullName == null) {
+      return null;
+    }
+    String[] parts = fullName.trim().split("\\s+");
+    if (parts.length == 0) {
+      return null;
+    }
+    return parts[parts.length - 1];
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof Student other)) return false;
+    return Objects.equals(id, other.id);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id);
+  }
 }
+
