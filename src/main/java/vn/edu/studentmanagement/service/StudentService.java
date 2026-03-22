@@ -1,76 +1,143 @@
 package vn.edu.studentmanagement.service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import vn.edu.studentmanagement.model.Student;
-import vn.edu.studentmanagement.storage.CsvStudentRepository;
+import vn.edu.studentmanagement.model.Gender;
+import vn.edu.studentmanagement.model.Major;
+import vn.edu.studentmanagement.storage.StudentRepository;
 
 public class StudentService {
-  private List<Student> getStudents() {
-    return CsvStudentRepository.readAll();
+  private final StudentRepository studentRepository;
+
+  public StudentService(StudentRepository studentRepository) {
+    this.studentRepository = Objects.requireNonNull(studentRepository);
   }
 
-  public List<Student> findAll() {
-    return new ArrayList<>(getStudents());
+  public Student findById(String id) {
+    if (id == null || id.isBlank()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
+    }
+    return studentRepository.findById(id.trim());
   }
 
-  public List<Student> findAllSortedById() {
-    return getStudents().stream()
-            .sorted(Comparator.comparingInt(Student::getId))
-            .collect(Collectors.toList());
+  public List<Student> getAll() {
+    return studentRepository.getAll();
   }
 
-  public List<Student> findAllSortedByLastName() {
-    return getStudents().stream()
-            .sorted(Comparator.comparing(Student::getLastname, Comparator.nullsLast(Comparator.naturalOrder())))
-            .collect(Collectors.toList());
+  public void add(Student s) {
+    if (s == null) {
+      throw new IllegalArgumentException("Student cannot be null.");
+    }
+    validateStudent(s);
+    if (studentRepository.findById(s.getId()) != null) {
+      throw new IllegalArgumentException("ID already exists.");
+    }
+    studentRepository.add(s);
   }
 
-  // FIXED: Corrected constructor arguments and method names (getId instead of getStt)
-  public Student addStudent(String name, String major, String gender) {
-    if (name == null || name.trim().isEmpty()) {
-      throw new IllegalArgumentException("Name cannot be empty.");
+  public boolean deleteById(String id) {
+    if (id == null || id.isBlank()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
+    }
+    return studentRepository.deleteById(id.trim());
+  }
+
+  private void validateStudent(Student s) {
+    if (s.getId() == null || s.getId().trim().isEmpty()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
     }
 
-    name = name.trim().replace(",", " ");
-
-    List<Student> students = getStudents();
-    // Changed getStt() to getId()
-    int nextId = students.isEmpty() ? 1 : students.get(students.size() - 1).getId() + 1;
-
-    // FIXED: Now matches the 4-arg constructor in Student.java
-    Student student = new Student(nextId, name, major, gender);
-    CsvStudentRepository.append(student);
-
-    return student;
+    String id = s.getId().trim();
+    if (!id.matches("^[A-Za-z0-9]{1,20}$")) {
+      throw new IllegalArgumentException("Invalid ID format.");
+    }
+    if (s.getFullName() == null || s.getFullName().trim().isEmpty()) {
+      throw new IllegalArgumentException("Full name cannot be empty.");
+    }
+    if (s.getGender() == null) {
+      throw new IllegalArgumentException("Gender is required.");
+    }
+    if (s.getMajor() == null) {
+      throw new IllegalArgumentException("Major is required.");
+    }
+    if (s.getAge() <= 0) {
+      throw new IllegalArgumentException("Age must be a positive number.");
+    }
   }
 
-  // FIXED: Changed stt to id to match your Student model
-  public Student deleteStudentById(int idToDelete) {
-    List<Student> students = getStudents();
-    if (students.isEmpty()) {
-      throw new IllegalArgumentException("Empty list.");
+  public List<Student> sortById(List<Student> input) {
+    if (input == null) {
+      throw new IllegalArgumentException("Input list cannot be null.");
+    }
+    return input.stream().sorted((a, b) -> a.getId().compareTo(b.getId())).collect(Collectors.toList());
+  }
+
+  public List<Student> sortByAge(List<Student> input) {
+    if (input == null) {
+      throw new IllegalArgumentException("Input list cannot be null.");
+    }
+    return input.stream().sorted((a, b) -> Integer.compare(a.getAge(), b.getAge())).collect(Collectors.toList());
+  }
+
+  public List<Student> sortByLastNameAtoZ(List<Student> input) {
+    if (input == null) {
+      throw new IllegalArgumentException("Input list cannot be null.");
+    }
+    return input.stream()
+        .sorted((a, b) -> {
+          String lastA = a.getLastName();
+          String lastB = b.getLastName();
+          if (lastA == null && lastB == null) return 0;
+          if (lastA == null) return 1;
+          if (lastB == null) return -1;
+          return lastA.compareToIgnoreCase(lastB);
+        })
+        .collect(Collectors.toList());
+  }
+
+  /**
+   * Chain multiple filter conditions. Pass null to ignore a condition.
+   */
+  public List<Student> filterStudents(
+      List<Student> input,
+      String namePrefix,
+      Gender gender,
+      Major major,
+      Integer minAge,
+      Integer maxAge) {
+
+    if (input == null) {
+      throw new IllegalArgumentException("Input list cannot be null.");
     }
 
-    Student deletedStudent = null;
-    List<Student> newList = new ArrayList<>();
+    String prefix = namePrefix == null ? null : namePrefix.trim().toLowerCase(Locale.ROOT);
+    Integer min = minAge;
+    Integer max = maxAge;
 
-    for (Student s : students) {
-      if (s.getId() == idToDelete) {
-        deletedStudent = s;
-        continue; // Skip adding to new list
+    return input.stream().filter(s -> {
+      if (prefix != null) {
+        String fullName = s.getFullName();
+        if (fullName == null || !fullName.toLowerCase(Locale.ROOT).startsWith(prefix)) {
+          return false;
+        }
       }
-      newList.add(s);
-    }
-
-    if (deletedStudent != null) {
-      CsvStudentRepository.writeAll(newList);
-      return deletedStudent;
-    } else {
-      throw new IllegalArgumentException("ID not found: " + idToDelete);
-    }
+      if (gender != null && s.getGender() != gender) {
+        return false;
+      }
+      if (major != null && s.getMajor() != major) {
+        return false;
+      }
+      if (min != null && s.getAge() < min) {
+        return false;
+      }
+      if (max != null && s.getAge() > max) {
+        return false;
+      }
+      return true;
+    }).collect(Collectors.toList());
   }
 }
