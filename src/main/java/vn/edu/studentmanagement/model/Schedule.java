@@ -1,4 +1,4 @@
-package DSA_Project;
+package vn.edu.studentmanagement.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,8 +7,7 @@ public class Schedule {
   private String studentId;
   private List<Course> selectedCourses = new ArrayList<>();
 
-  public Schedule() {
-  }
+  public Schedule() {}
 
   public Schedule(String studentId) {
     this.studentId = studentId;
