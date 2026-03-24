@@ -5,6 +5,8 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.model.Gender;
+import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
 
@@ -19,9 +21,10 @@ public class StudentService {
 
   public List<Student> findAllSortedById() {
     return getStudents().stream()
-            .sorted(Comparator.comparingInt(Student::getId))
-            .collect(Collectors.toList());
+        .sorted(Comparator.comparing(Student::getId))
+        .collect(Collectors.toList());
   }
+
   public List<Student> searchStudents(String query) {
     if (query == null || query.trim().isEmpty()) {
       return findAll();
@@ -30,26 +33,26 @@ public class StudentService {
     String lowerQuery = query.toLowerCase().trim();
 
     return getStudents().stream()
-            .filter(student ->
-                    // Matches ID
-                    String.valueOf(student.getId()).contains(lowerQuery) ||
-                            // Matches Full Name (Searching by Last Name)
-                            (student.getLastname() != null && student.getLastname().toLowerCase().contains(lowerQuery)) ||
-                            // Matches Gender
-                            (student.getGender() != null && student.getGender().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
-                            // Matches Major
-                            (student.getMajor() != null && student.getMajor().toLowerCase().contains(lowerQuery))
-            )
-            .collect(Collectors.toList());
+        .filter(student ->
+        // Matches ID
+        String.valueOf(student.getId()).contains(lowerQuery) ||
+        // Matches Full Name (Searching by Last Name)
+            (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
+            // Matches Gender
+            (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
+            // Matches Major
+            (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
+        .collect(Collectors.toList());
   }
 
   public List<Student> findAllSortedByLastName() {
     return getStudents().stream()
-            .sorted(Comparator.comparing(Student::getLastname, Comparator.nullsLast(Comparator.naturalOrder())))
-            .collect(Collectors.toList());
+        .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
+        .collect(Collectors.toList());
   }
 
-  // FIXED: Corrected constructor arguments and method names (getId instead of getStt)
+  // FIXED: Corrected constructor arguments and method names (getId instead of
+  // getStt)
   private void validateStudentData(String name, String major, String gender) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Student name is required.");
@@ -67,7 +70,13 @@ public class StudentService {
     if (!g.equals("male") && !g.equals("female") && !g.equals("other")) {
       throw new IllegalArgumentException("Gender must be 'Male', 'Female', or 'Other'.");
     }
+
+    String m = major.trim().toUpperCase();
+    if (!m.equals("IT") && !m.equals("CS") && !m.equals("DS")) {
+      throw new IllegalArgumentException("Major must be 'IT', 'CS', or 'DS'.");
+    }
   }
+
   public Student addStudent(String name, String major, String gender) {
     // 1. Validate the data first
     validateStudentData(name, major, gender);
@@ -78,12 +87,27 @@ public class StudentService {
     String cleanGender = gender.trim().replace(",", " ");
 
     List<Student> students = getStudents();
-    int nextId = students.isEmpty() ? 1 : students.get(students.size() - 1).getId() + 1;
+    int nextId = students.stream()
+        .map(Student::getId)
+        .mapToInt(id -> {
+          try {
+            return Integer.parseInt(id);
+          } catch (NumberFormatException e) {
+            return 0;
+          }
+        })
+        .max()
+        .orElse(0) + 1;
 
-    Student student = new Student(nextId, cleanName, cleanMajor, cleanGender);
-    CsvStudentRepository.append(student);
+    Student s = new Student(
+        String.valueOf(nextId),
+        cleanName,
+        Major.valueOf(cleanMajor.toUpperCase()),
+        Gender.valueOf(cleanGender.toUpperCase()),
+        0);
+    CsvStudentRepository.append(s);
 
-    return student;
+    return s;
   }
 
   // FIXED: Changed stt to id to match your Student model
@@ -97,7 +121,7 @@ public class StudentService {
     List<Student> newList = new ArrayList<>();
 
     for (Student s : students) {
-      if (s.getId() == idToDelete) {
+      if (Integer.parseInt(s.getId()) == idToDelete) {
         deletedStudent = s;
         continue; // Skip adding to new list
       }
@@ -111,5 +135,15 @@ public class StudentService {
       throw new IllegalArgumentException("ID not found: " + idToDelete);
 
     }
+  }
+
+  public Student findById(String id) {
+    if (id == null || id.trim().isEmpty()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
+    }
+    return getStudents().stream()
+        .filter(s -> s.getId().equals(id.trim()))
+        .findFirst()
+        .orElse(null);
   }
 }
