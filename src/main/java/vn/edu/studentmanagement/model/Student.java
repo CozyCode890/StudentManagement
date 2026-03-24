@@ -5,17 +5,15 @@ import java.util.Objects;
 public class Student {
   private String id;
   private String fullName;
-  private Gender gender;
   private Major major;
+  private Gender gender;
   private int age;
 
-  public Student() {}
-
-  public Student(String id, String fullName, Gender gender, Major major, int age) {
+  public Student(String id, String fullName, Major major, Gender gender, int age) {
     this.id = id;
     this.fullName = fullName;
-    this.gender = gender;
     this.major = major;
+    this.gender = gender;
     this.age = age;
   }
 
@@ -75,8 +73,10 @@ public class Student {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof Student other)) return false;
+    if (this == o)
+      return true;
+    if (!(o instanceof Student other))
+      return false;
     return Objects.equals(id, other.id);
   }
 
@@ -85,4 +85,3 @@ public class Student {
     return Objects.hash(id);
   }
 }
-
