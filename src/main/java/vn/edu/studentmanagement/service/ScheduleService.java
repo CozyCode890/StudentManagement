@@ -54,27 +54,36 @@ public class ScheduleService {
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
-  public AddCourseResult addCourse(String studentId, Course course) {
+  // Change the method signature to accept courseId as a String
+  public AddCourseResult addCourse(String studentId, String courseId) {
     try {
       if (studentId == null || studentId.isBlank()) {
         throw new IllegalArgumentException("ID cannot be empty.");
       }
-      if (course == null) {
-        throw new IllegalArgumentException("Course cannot be null.");
+      if (courseId == null || courseId.isBlank()) {
+        throw new IllegalArgumentException("Course ID cannot be empty.");
       }
-      if (course.getTimeSlot() == null) {
-        throw new IllegalArgumentException("Time slot is required.");
-      }
+
       String sid = studentId.trim();
+      String cid = courseId.trim();
 
       Student student = studentService.findById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
 
-      CourseDefinition def = courseCatalog.findByCourseId(course.getCourseId());
+      // Look up the course definition using the provided courseId
+      CourseDefinition def = courseCatalog.findByCourseId(cid);
       if (def == null) {
         throw new IllegalArgumentException("Course not found");
+      }
+
+      // IMPORTANT: I am assuming CourseDefinition now provides the TimeSlot.
+      // If your CourseDefinition model doesn't have getTimeSlot(),
+      // you will need to handle how the time is assigned here.
+      TimeSlot proposedTime = def.getTimeSlot();
+      if (proposedTime == null) {
+        throw new IllegalArgumentException("Course has no scheduled time slot.");
       }
 
       Major studentMajor = student.getMajor();
@@ -85,31 +94,32 @@ public class ScheduleService {
       }
 
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
+
+      // Prevent duplicate courseId within one schedule.
+      for (Course selected : schedule.getSelectedCourses()) {
+        if (selected.getCourseId().equals(cid)) {
+          throw new IllegalArgumentException("Course already added");
+        }
+      }
+
       if (schedule.selectedCoursesCount() >= 3) {
         throw new IllegalArgumentException("Max 3 courses");
       }
 
       // Conflict checking against all selected courses
       for (Course selected : schedule.getSelectedCourses()) {
-        if (overlap(selected.getTimeSlot(), course.getTimeSlot())) {
+        if (overlap(selected.getTimeSlot(), proposedTime)) {
           throw new IllegalArgumentException("Conflict time");
         }
       }
 
-      // Build the final selected course using catalog definition + chosen timeslot.
+      // Create the Course instance to add to the schedule
       Course selectedCourse = new Course(
-          def.getCourseId(),
-          def.getName(),
-          def.getType(),
-          def.getMajor(),
-          course.getTimeSlot());
-
-      // Prevent duplicate courseId within one schedule.
-      for (Course selected : schedule.getSelectedCourses()) {
-        if (selected.getCourseId().equals(selectedCourse.getCourseId())) {
-          throw new IllegalArgumentException("Course already added");
-        }
-      }
+              def.getCourseId(),
+              def.getName(),
+              def.getType(),
+              def.getMajor(),
+              proposedTime);
 
       schedule.getSelectedCourses().add(selectedCourse);
       return new AddCourseResult(true, "Added successfully");

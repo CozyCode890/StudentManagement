@@ -21,7 +21,27 @@ public class CourseCatalog {
 
   public CourseCatalog() {
     Map<String, CourseDefinition> tmp = new HashMap<>();
+    TimeSlot monMorning = new TimeSlot(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot monMid = new TimeSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot monAfternoon = new TimeSlot(DayOfWeek.MONDAY, LocalTime.of(13, 0), LocalTime.of(14, 30));
 
+    TimeSlot tueMorning = new TimeSlot(DayOfWeek.TUESDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot tueMid = new TimeSlot(DayOfWeek.TUESDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot tueAfternoon = new TimeSlot(DayOfWeek.TUESDAY, LocalTime.of(14, 0), LocalTime.of(15, 30));
+    TimeSlot wedMorning = new TimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot wedMid = new TimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot wedAfternoon = new TimeSlot(DayOfWeek.WEDNESDAY, LocalTime.of(13, 0), LocalTime.of(14, 30));
+
+    TimeSlot thurMorning = new TimeSlot(DayOfWeek.THURSDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot thurMid = new TimeSlot(DayOfWeek.THURSDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot thurAfternoon = new TimeSlot(DayOfWeek.THURSDAY, LocalTime.of(14, 0), LocalTime.of(15, 30));
+    TimeSlot friMorning = new TimeSlot(DayOfWeek.FRIDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot friMid = new TimeSlot(DayOfWeek.FRIDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot friAfternoon = new TimeSlot(DayOfWeek.FRIDAY, LocalTime.of(13, 0), LocalTime.of(14, 30));
+
+    TimeSlot satMorning = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
+    TimeSlot satMid = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
+    TimeSlot satAfternoon = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(14, 0), LocalTime.of(15, 30));
     // General courses (fixed)
     tmp.put("GEN101", new CourseDefinition("GEN101", "Calculus", CourseType.GENERAL, null));
     tmp.put("GEN102", new CourseDefinition("GEN102", "Physics", CourseType.GENERAL, null));
