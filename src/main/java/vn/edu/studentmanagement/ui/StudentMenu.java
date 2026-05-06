@@ -133,7 +133,7 @@ public class StudentMenu {
     String name = SC.nextLine();
     System.out.print("Enter major: ");
     String major = SC.nextLine();
-    System.out.print("Enter gender (Male/Female/Other): ");
+    System.out.print("Enter gender (Male/Female): ");
     String gender = SC.nextLine();
 
     try {

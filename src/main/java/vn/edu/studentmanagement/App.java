@@ -3,6 +3,8 @@ package vn.edu.studentmanagement;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
+import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.storage.CsvScheduleRepository;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
 import vn.edu.studentmanagement.ui.ConsoleIO;
 import vn.edu.studentmanagement.ui.MainMenu;
@@ -13,7 +15,8 @@ public class App {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
 
   public static void main(String[] args) {
-    CsvStudentRepository.ensureFileExists();
+    new CsvStudentRepository().ensureFileExists();
+    new CsvScheduleRepository(new CourseCatalog()).ensureFileExists();
 
     while (true) {
       ConsoleIO.clearScreen();

@@ -15,13 +15,14 @@ import vn.edu.studentmanagement.model.Gender;
 import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Student;
 
-public class CsvStudentRepository {
+public class CsvStudentRepository implements CsvRepository<Student> {
   public static final Path CSV_PATH = Paths.get(
       System.getProperty("user.home"),
       ".student-manager",
       "students.csv");
 
-  public static void ensureFileExists() {
+  @Override
+  public void ensureFileExists() {
     try {
       Files.createDirectories(CSV_PATH.getParent());
       if (Files.notExists(CSV_PATH)) {
@@ -33,7 +34,8 @@ public class CsvStudentRepository {
     }
   }
 
-  public static List<Student> readAll() {
+  @Override
+  public List<Student> readAll() {
     ensureFileExists();
     try {
       List<String> lines = Files.readAllLines(CSV_PATH, StandardCharsets.UTF_8);
@@ -65,7 +67,8 @@ public class CsvStudentRepository {
     }
   }
 
-  public static void writeAll(List<Student> students) {
+  @Override
+  public void writeAll(List<Student> students) {
     ensureFileExists();
     List<String> lines = students.stream()
         .map(s -> s.getId() + "," + s.getFullName() + "," + s.getMajor() + "," + s.getGender())
@@ -78,7 +81,8 @@ public class CsvStudentRepository {
     }
   }
 
-  public static void append(Student student) {
+  @Override
+  public void append(Student student) {
     ensureFileExists();
     String line = student.getId() + "," + student.getFullName() + "," + student.getMajor() + "," + student.getGender()
         + System.lineSeparator();

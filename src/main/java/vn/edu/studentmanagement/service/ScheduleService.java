@@ -4,23 +4,28 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Course;
 import vn.edu.studentmanagement.model.CourseDefinition;
-import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Schedule;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.model.TimeSlot;
-import vn.edu.studentmanagement.model.CourseType;
+import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.storage.CsvRepository;
+import vn.edu.studentmanagement.storage.CsvScheduleRepository;
 
 public class ScheduleService {
+  private static final int SAVE_BATCH_SIZE = 5;
+
   private final StudentService studentService;
   private final CourseCatalog courseCatalog;
+  private final CsvRepository<Schedule> scheduleRepository;
 
-  // In-memory schedule store (can be persisted later).
   private final Map<String, Schedule> schedulesByStudentId = new HashMap<>();
+  private int pendingScheduleChanges;
 
   public static class AddCourseResult {
     private final boolean success;
@@ -41,8 +46,17 @@ public class ScheduleService {
   }
 
   public ScheduleService(StudentService studentService, CourseCatalog courseCatalog) {
+    this(studentService, courseCatalog, new CsvScheduleRepository(courseCatalog));
+  }
+
+  public ScheduleService(
+      StudentService studentService,
+      CourseCatalog courseCatalog,
+      CsvRepository<Schedule> scheduleRepository) {
     this.studentService = Objects.requireNonNull(studentService);
     this.courseCatalog = Objects.requireNonNull(courseCatalog);
+    this.scheduleRepository = Objects.requireNonNull(scheduleRepository);
+    loadSchedules();
   }
 
   /**
@@ -67,33 +81,24 @@ public class ScheduleService {
       }
 
       String sid = studentId.trim();
-      String cid = courseId.trim();
+      String cid = normalizeCourseId(courseId);
 
       Student student = studentService.findById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
 
-      // Look up the course definition using the provided courseId
       CourseDefinition def = courseCatalog.findByCourseId(cid);
       if (def == null) {
         throw new IllegalArgumentException("Course not found");
       }
 
-      // IMPORTANT: I am assuming CourseDefinition now provides the TimeSlot.
-      // If your CourseDefinition model doesn't have getTimeSlot(),
-      // you will need to handle how the time is assigned here.
-      TimeSlot proposedTime = def.getTimeSlot();
-      if (proposedTime == null) {
-        throw new IllegalArgumentException("Course has no scheduled time slot.");
-      }
-
-      Major studentMajor = student.getMajor();
-
-      // Filter major courses by student major
-      if (def.getType() == CourseType.MAJOR && def.getMajor() != studentMajor) {
+      if (!courseCatalog.isEligibleForMajor(def, student.getMajor())) {
         throw new IllegalArgumentException("Course not allowed for student's major");
       }
+
+      Course selectedCourse = courseCatalog.createScheduledCourse(cid);
+      TimeSlot proposedTime = selectedCourse.getTimeSlot();
 
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
 
@@ -115,17 +120,16 @@ public class ScheduleService {
         }
       }
 
-      // Create the Course instance to add to the schedule
-      Course selectedCourse = new Course(
-              def.getCourseId(),
-              def.getName(),
-              def.getType(),
-              def.getMajor(),
-              proposedTime);
+      if (!isValidTimeSlot(proposedTime)) {
+        throw new IllegalArgumentException("Course scheduled outside valid time slots");
+      }
 
       schedule.getSelectedCourses().add(selectedCourse);
+      markScheduleChanged();
       return new AddCourseResult(true, "Added successfully");
     } catch (IllegalArgumentException e) {
+      return new AddCourseResult(false, e.getMessage());
+    } catch (IllegalStateException e) {
       return new AddCourseResult(false, e.getMessage());
     }
   }
@@ -138,7 +142,7 @@ public class ScheduleService {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
     String sid = studentId.trim();
-    String cid = courseId.trim();
+    String cid = normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null)
@@ -148,7 +152,16 @@ public class ScheduleService {
     if (schedule.getSelectedCourses().isEmpty()) {
       schedulesByStudentId.remove(sid);
     }
+    if (removed) {
+      markScheduleChanged();
+    }
     return removed;
+  }
+
+  public void flushPendingChanges() {
+    if (pendingScheduleChanges > 0) {
+      saveSchedules();
+    }
   }
 
   public Schedule getSchedule(String studentId) {
@@ -170,5 +183,33 @@ public class ScheduleService {
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));
     return courses;
+  }
+
+  private String normalizeCourseId(String courseId) {
+    return courseId.trim().toUpperCase(Locale.ROOT);
+  }
+
+  private boolean isValidTimeSlot(TimeSlot timeSlot) {
+    return timeSlot != null && courseCatalog.getValidTimeSlots().contains(timeSlot);
+  }
+
+  private void loadSchedules() {
+    for (Schedule schedule : scheduleRepository.readAll()) {
+      if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
+        schedulesByStudentId.put(schedule.getStudentId().trim(), schedule);
+      }
+    }
+  }
+
+  private void saveSchedules() {
+    scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
+    pendingScheduleChanges = 0;
+  }
+
+  private void markScheduleChanged() {
+    pendingScheduleChanges++;
+    if (pendingScheduleChanges >= SAVE_BATCH_SIZE) {
+      saveSchedules();
+    }
   }
 }

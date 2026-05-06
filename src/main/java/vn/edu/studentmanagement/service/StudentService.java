@@ -8,11 +8,22 @@ import java.util.stream.Collectors;
 import vn.edu.studentmanagement.model.Gender;
 import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Student;
+import vn.edu.studentmanagement.storage.CsvRepository;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
 
 public class StudentService {
+  private final CsvRepository<Student> studentRepository;
+
+  public StudentService() {
+    this(new CsvStudentRepository());
+  }
+
+  public StudentService(CsvRepository<Student> studentRepository) {
+    this.studentRepository = studentRepository;
+  }
+
   private List<Student> getStudents() {
-    return CsvStudentRepository.readAll();
+    return studentRepository.readAll();
   }
 
   public List<Student> findAll() {
@@ -105,7 +116,7 @@ public class StudentService {
         Major.valueOf(cleanMajor.toUpperCase()),
         Gender.valueOf(cleanGender.toUpperCase()),
         0);
-    CsvStudentRepository.append(s);
+    studentRepository.append(s);
 
     return s;
   }
@@ -129,7 +140,7 @@ public class StudentService {
     }
 
     if (deletedStudent != null) {
-      CsvStudentRepository.writeAll(newList);
+      studentRepository.writeAll(newList);
       return deletedStudent;
     } else {
       throw new IllegalArgumentException("ID not found: " + idToDelete);
