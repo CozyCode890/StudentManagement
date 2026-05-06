@@ -49,8 +49,10 @@ public class ScheduleService {
    * overlap if (same day) && startA < endB && startB < endA
    */
   public boolean overlap(TimeSlot a, TimeSlot b) {
-    if (a == null || b == null) return false;
-    if (a.getDay() != b.getDay()) return false;
+    if (a == null || b == null)
+      return false;
+    if (a.getDay() != b.getDay())
+      return false;
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
@@ -139,7 +141,8 @@ public class ScheduleService {
     String cid = courseId.trim();
 
     Schedule schedule = schedulesByStudentId.get(sid);
-    if (schedule == null) return false;
+    if (schedule == null)
+      return false;
 
     boolean removed = schedule.getSelectedCourses().removeIf(c -> c.getCourseId().equals(cid));
     if (schedule.getSelectedCourses().isEmpty()) {
