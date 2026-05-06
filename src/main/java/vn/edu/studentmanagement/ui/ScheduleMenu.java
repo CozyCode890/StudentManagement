@@ -39,6 +39,7 @@ public class ScheduleMenu {
         case "2" -> addCourseToSchedule();
         case "3" -> removeCourseFromSchedule();
         case "0" -> {
+          scheduleService.flushPendingChanges();
           return;
         }
         default -> System.out.println("[!] Invalid choice.");

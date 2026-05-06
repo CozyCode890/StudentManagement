@@ -18,11 +18,14 @@ import vn.edu.studentmanagement.storage.CsvRepository;
 import vn.edu.studentmanagement.storage.CsvScheduleRepository;
 
 public class ScheduleService {
+  private static final int SAVE_BATCH_SIZE = 5;
+
   private final StudentService studentService;
   private final CourseCatalog courseCatalog;
   private final CsvRepository<Schedule> scheduleRepository;
 
   private final Map<String, Schedule> schedulesByStudentId = new HashMap<>();
+  private int pendingScheduleChanges;
 
   public static class AddCourseResult {
     private final boolean success;
@@ -118,7 +121,7 @@ public class ScheduleService {
       }
 
       schedule.getSelectedCourses().add(selectedCourse);
-      saveSchedules();
+      markScheduleChanged();
       return new AddCourseResult(true, "Added successfully");
     } catch (IllegalArgumentException e) {
       return new AddCourseResult(false, e.getMessage());
@@ -146,9 +149,15 @@ public class ScheduleService {
       schedulesByStudentId.remove(sid);
     }
     if (removed) {
-      saveSchedules();
+      markScheduleChanged();
     }
     return removed;
+  }
+
+  public void flushPendingChanges() {
+    if (pendingScheduleChanges > 0) {
+      saveSchedules();
+    }
   }
 
   public Schedule getSchedule(String studentId) {
@@ -186,5 +195,13 @@ public class ScheduleService {
 
   private void saveSchedules() {
     scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
+    pendingScheduleChanges = 0;
+  }
+
+  private void markScheduleChanged() {
+    pendingScheduleChanges++;
+    if (pendingScheduleChanges >= SAVE_BATCH_SIZE) {
+      saveSchedules();
+    }
   }
 }
