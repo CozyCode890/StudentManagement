@@ -28,6 +28,7 @@ public class StudentMenu {
         case "2" -> addStudent();
         case "3" -> deleteStudentById();
         case "0" -> {
+          studentService.flushPendingChanges();
           return;
         }
         default -> System.out.println("Invalid choice.");
