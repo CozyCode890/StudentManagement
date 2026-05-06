@@ -2,6 +2,7 @@ package vn.edu.studentmanagement.ui;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import vn.edu.studentmanagement.model.Student;
@@ -9,9 +10,10 @@ import vn.edu.studentmanagement.service.StudentService;
 
 public class StudentMenu {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
-  private static final StudentService studentService = new StudentService();
+  private static StudentService studentService;
 
-  public static void run() {
+  public static void run(StudentService sharedStudentService) {
+    studentService = Objects.requireNonNull(sharedStudentService);
     while (true) {
       ConsoleIO.clearScreen();
 

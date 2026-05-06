@@ -2,6 +2,7 @@ package vn.edu.studentmanagement.ui;
 
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import vn.edu.studentmanagement.model.Course;
@@ -14,13 +15,17 @@ import vn.edu.studentmanagement.service.StudentService;
 public class ScheduleMenu {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
 
-  // Lưu ý: Trong thực tế, các service này nên được truyền vào constructor
-  // thay vì khởi tạo mới để dùng chung dữ liệu với các Menu khác.
-  private static final StudentService studentService = new StudentService();
-  private static final CourseCatalog courseCatalog = new CourseCatalog();
-  private static final ScheduleService scheduleService = new ScheduleService(studentService, courseCatalog);
+  private static StudentService studentService;
+  private static CourseCatalog courseCatalog;
+  private static ScheduleService scheduleService;
 
-  public static void run() {
+  public static void run(
+      StudentService sharedStudentService,
+      CourseCatalog sharedCourseCatalog,
+      ScheduleService sharedScheduleService) {
+    studentService = Objects.requireNonNull(sharedStudentService);
+    courseCatalog = Objects.requireNonNull(sharedCourseCatalog);
+    scheduleService = Objects.requireNonNull(sharedScheduleService);
     while (true) {
       ConsoleIO.clearScreen();
 
