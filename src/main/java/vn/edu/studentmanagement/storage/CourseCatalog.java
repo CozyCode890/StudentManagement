@@ -137,31 +137,10 @@ public class CourseCatalog {
   }
 
   /**
-   * Candidate slots for "auto random" mode.
+   * Scheduled slots currently used by catalog courses.
    */
   public List<TimeSlot> getValidTimeSlots() {
-    List<TimeSlot> slots = new ArrayList<>();
-    // Mon-Fri
-    DayOfWeek[] days = new DayOfWeek[] {
-        DayOfWeek.MONDAY, DayOfWeek.TUESDAY, DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY
-    };
-
-    // 4 blocks/day
-    LocalTime[] starts = new LocalTime[] {
-        LocalTime.of(7, 0),
-        LocalTime.of(9, 30),
-        LocalTime.of(13, 0),
-        LocalTime.of(15, 30)
-    };
-    int durationMinutes = 90;
-
-    for (DayOfWeek day : days) {
-      for (LocalTime start : starts) {
-        LocalTime end = start.plusMinutes(durationMinutes);
-        slots.add(new TimeSlot(day, start, end));
-      }
-    }
-    return slots;
+    return new ArrayList<>(timeSlotsByCourseId.values());
   }
 
   private String normalizeCourseId(String courseId) {

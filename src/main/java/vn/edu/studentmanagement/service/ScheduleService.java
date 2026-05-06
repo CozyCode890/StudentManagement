@@ -120,6 +120,10 @@ public class ScheduleService {
         }
       }
 
+      if (!isValidTimeSlot(proposedTime)) {
+        throw new IllegalArgumentException("Course scheduled outside valid time slots");
+      }
+
       schedule.getSelectedCourses().add(selectedCourse);
       markScheduleChanged();
       return new AddCourseResult(true, "Added successfully");
@@ -183,6 +187,10 @@ public class ScheduleService {
 
   private String normalizeCourseId(String courseId) {
     return courseId.trim().toUpperCase(Locale.ROOT);
+  }
+
+  private boolean isValidTimeSlot(TimeSlot timeSlot) {
+    return timeSlot != null && courseCatalog.getValidTimeSlots().contains(timeSlot);
   }
 
   private void loadSchedules() {

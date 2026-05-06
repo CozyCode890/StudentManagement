@@ -86,8 +86,10 @@ public class ScheduleMenu {
     // 1. Hiển thị danh sách môn học có sẵn cho SV này
     try {
       System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
-      List<CourseDefinition> available = courseCatalog.getAvailableCoursesForStudentMajor(student.getMajor());
-      renderDefinitionTable(available);
+      System.out.println("\nGeneral courses:");
+      renderDefinitionTable(courseCatalog.getGeneralCourses());
+      System.out.println("\nMajor courses:");
+      renderDefinitionTable(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
 
       // 2. Nhập mã môn học
       System.out.print("\nEnter Course ID to add: ");
