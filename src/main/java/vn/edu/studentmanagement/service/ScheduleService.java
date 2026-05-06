@@ -14,12 +14,14 @@ import vn.edu.studentmanagement.model.Schedule;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.model.TimeSlot;
 import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.storage.CsvRepository;
+import vn.edu.studentmanagement.storage.CsvScheduleRepository;
 
 public class ScheduleService {
   private final StudentService studentService;
   private final CourseCatalog courseCatalog;
+  private final CsvRepository<Schedule> scheduleRepository;
 
-  // In-memory schedule store (can be persisted later).
   private final Map<String, Schedule> schedulesByStudentId = new HashMap<>();
 
   public static class AddCourseResult {
@@ -41,8 +43,17 @@ public class ScheduleService {
   }
 
   public ScheduleService(StudentService studentService, CourseCatalog courseCatalog) {
+    this(studentService, courseCatalog, new CsvScheduleRepository(courseCatalog));
+  }
+
+  public ScheduleService(
+      StudentService studentService,
+      CourseCatalog courseCatalog,
+      CsvRepository<Schedule> scheduleRepository) {
     this.studentService = Objects.requireNonNull(studentService);
     this.courseCatalog = Objects.requireNonNull(courseCatalog);
+    this.scheduleRepository = Objects.requireNonNull(scheduleRepository);
+    loadSchedules();
   }
 
   /**
@@ -107,6 +118,7 @@ public class ScheduleService {
       }
 
       schedule.getSelectedCourses().add(selectedCourse);
+      saveSchedules();
       return new AddCourseResult(true, "Added successfully");
     } catch (IllegalArgumentException e) {
       return new AddCourseResult(false, e.getMessage());
@@ -132,6 +144,9 @@ public class ScheduleService {
     boolean removed = schedule.getSelectedCourses().removeIf(c -> c.getCourseId().equals(cid));
     if (schedule.getSelectedCourses().isEmpty()) {
       schedulesByStudentId.remove(sid);
+    }
+    if (removed) {
+      saveSchedules();
     }
     return removed;
   }
@@ -159,5 +174,17 @@ public class ScheduleService {
 
   private String normalizeCourseId(String courseId) {
     return courseId.trim().toUpperCase(Locale.ROOT);
+  }
+
+  private void loadSchedules() {
+    for (Schedule schedule : scheduleRepository.readAll()) {
+      if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
+        schedulesByStudentId.put(schedule.getStudentId().trim(), schedule);
+      }
+    }
+  }
+
+  private void saveSchedules() {
+    scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
   }
 }
