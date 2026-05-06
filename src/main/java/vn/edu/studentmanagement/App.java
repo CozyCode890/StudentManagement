@@ -6,6 +6,7 @@ import java.util.Scanner;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
 import vn.edu.studentmanagement.ui.ConsoleIO;
 import vn.edu.studentmanagement.ui.MainMenu;
+import vn.edu.studentmanagement.ui.ScheduleMenu;
 import vn.edu.studentmanagement.ui.StudentMenu;
 
 public class App {
@@ -24,20 +25,14 @@ public class App {
         break;
       }
 
-      boolean shouldPause = true;
       switch (choice) {
-        case "1" -> StudentMenu.viewStudents();
-        case "2" -> StudentMenu.addStudent();
-        case "3" -> StudentMenu.deleteStudentByStt();
+        case "1" -> StudentMenu.run();
+        case "2" -> ScheduleMenu.run();
         default -> {
-          System.out.println("Invalid choice. Please select 1, 2, 3, 0, or q.\n");
-          shouldPause = false;
+          System.out.println("Invalid choice. Please select 1, 2, 0, or q.\n");
+          System.out.print("Press Enter to continue...");
+          SC.nextLine();
         }
-      }
-
-      if (shouldPause) {
-        System.out.print("Press Enter to continue...");
-        SC.nextLine();
       }
     }
   }
