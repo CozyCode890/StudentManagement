@@ -5,7 +5,7 @@ public class CourseDefinition {
   private String name;
   private CourseType type;
   private Major major; // only for MAJOR courses; null for GENERAL
-  private TimeSlot timeSlot;
+
   public CourseDefinition() {}
 
   public CourseDefinition(String courseId, String name, CourseType type, Major major) {
@@ -13,10 +13,7 @@ public class CourseDefinition {
     this.name = name;
     this.type = type;
     this.major = major;
-    this.timeSlot = timeSlot;
   }
-  public TimeSlot getTimeSlot() { return timeSlot; }
-  public void setTimeSlot(TimeSlot timeSlot) { this.timeSlot = timeSlot; }
 
   public String getCourseId() {
     return courseId;

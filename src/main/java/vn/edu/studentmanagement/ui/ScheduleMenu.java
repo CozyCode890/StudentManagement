@@ -7,7 +7,7 @@ import java.util.Scanner;
 import vn.edu.studentmanagement.model.Course;
 import vn.edu.studentmanagement.model.CourseDefinition;
 import vn.edu.studentmanagement.model.Student;
-import vn.edu.studentmanagement.service.CourseCatalog;
+import vn.edu.studentmanagement.storage.CourseCatalog;
 import vn.edu.studentmanagement.service.ScheduleService;
 import vn.edu.studentmanagement.service.StudentService;
 
@@ -51,13 +51,17 @@ public class ScheduleMenu {
     if (student == null)
       return;
 
-    List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
+    try {
+      List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
 
-    System.out.println("\n>>> SCHEDULE FOR: " + student.getFullName().toUpperCase() + " (ID: " + student.getId() + ")");
-    if (courses.isEmpty()) {
-      System.out.println("(No courses registered yet)");
-    } else {
-      renderCourseTable(courses);
+      System.out.println("\n>>> SCHEDULE FOR: " + student.getFullName().toUpperCase() + " (ID: " + student.getId() + ")");
+      if (courses.isEmpty()) {
+        System.out.println("(No courses registered yet)");
+      } else {
+        renderCourseTable(courses);
+      }
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
     }
   }
 
@@ -67,21 +71,25 @@ public class ScheduleMenu {
       return;
 
     // 1. Hiển thị danh sách môn học có sẵn cho SV này
-    System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
-    List<CourseDefinition> available = courseCatalog.getAvailableCoursesForStudentMajor(student.getMajor());
-    renderDefinitionTable(available);
+    try {
+      System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
+      List<CourseDefinition> available = courseCatalog.getAvailableCoursesForStudentMajor(student.getMajor());
+      renderDefinitionTable(available);
 
-    // 2. Nhập mã môn học
-    System.out.print("\nEnter Course ID to add: ");
-    String courseId = SC.nextLine().trim().toUpperCase();
+      // 2. Nhập mã môn học
+      System.out.print("\nEnter Course ID to add: ");
+      String courseId = SC.nextLine().trim().toUpperCase();
 
-    // 3. Gọi service xử lý logic (check trùng, check conflict, check max 3 môn)
-    ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
+      // 3. Gọi service xử lý logic (check trùng, check conflict, check max 3 môn)
+      ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
 
-    if (result.isSuccess()) {
-      System.out.println("[OK] " + result.getMessage());
-    } else {
-      System.out.println("[ERROR] " + result.getMessage());
+      if (result.isSuccess()) {
+        System.out.println("[OK] " + result.getMessage());
+      } else {
+        System.out.println("[ERROR] " + result.getMessage());
+      }
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
     }
   }
 
@@ -90,21 +98,25 @@ public class ScheduleMenu {
     if (student == null)
       return;
 
-    List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
-    if (currentCourses.isEmpty()) {
-      System.out.println("[!] This student has no courses to remove.");
-      return;
-    }
+    try {
+      List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
+      if (currentCourses.isEmpty()) {
+        System.out.println("[!] This student has no courses to remove.");
+        return;
+      }
 
-    renderCourseTable(currentCourses);
-    System.out.print("\nEnter Course ID to remove: ");
-    String courseId = SC.nextLine().trim().toUpperCase();
+      renderCourseTable(currentCourses);
+      System.out.print("\nEnter Course ID to remove: ");
+      String courseId = SC.nextLine().trim().toUpperCase();
 
-    boolean removed = scheduleService.removeCourse(student.getId(), courseId);
-    if (removed) {
-      System.out.println("[OK] Course removed successfully.");
-    } else {
-      System.out.println("[ERROR] Course ID not found in student's schedule.");
+      boolean removed = scheduleService.removeCourse(student.getId(), courseId);
+      if (removed) {
+        System.out.println("[OK] Course removed successfully.");
+      } else {
+        System.out.println("[ERROR] Course ID not found in student's schedule.");
+      }
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
     }
   }
 
@@ -113,11 +125,20 @@ public class ScheduleMenu {
   private static Student askForStudent() {
     System.out.print("Enter student ID: ");
     String sid = SC.nextLine().trim();
-    Student s = studentService.findById(sid);
-    if (s == null) {
-      System.out.println("[!] Student not found with ID: " + sid);
+    try {
+      Student s = studentService.findById(sid);
+      if (s == null) {
+        System.out.println("[!] Student not found with ID: " + sid);
+      }
+      return s;
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
+      return null;
     }
-    return s;
+  }
+
+  private static void printError(RuntimeException e) {
+    System.out.println("[ERROR] " + e.getMessage());
   }
 
   private static void renderCourseTable(List<Course> courses) {
