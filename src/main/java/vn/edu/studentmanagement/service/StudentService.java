@@ -89,11 +89,9 @@ public class StudentService {
       throw new IllegalArgumentException("Gender is required.");
     }
 
-    // Example of specific business logic:
-    // Only allow specific gender strings
     String g = gender.trim().toLowerCase();
-    if (!g.equals("male") && !g.equals("female") && !g.equals("other")) {
-      throw new IllegalArgumentException("Gender must be 'Male', 'Female', or 'Other'.");
+    if (!g.equals("male") && !g.equals("female")) {
+      throw new IllegalArgumentException("Gender must be 'Male' or 'Female'.");
     }
 
     String m = major.trim().toUpperCase();
