@@ -129,6 +129,8 @@ public class StudentMenu {
   }
 
   public static void addStudent() {
+    System.out.print("\nEnter ID: ");
+    String id = SC.nextLine();
     System.out.print("\nEnter name: ");
     String name = SC.nextLine();
     System.out.print("Enter major: ");
@@ -137,7 +139,7 @@ public class StudentMenu {
     String gender = SC.nextLine();
 
     try {
-      Student student = studentService.addStudent(name, major, gender);
+      Student student = studentService.addStudent(id, name, major, gender);
       System.out.println("Successfully added ID: " + student.getId());
     } catch (Exception e) {
       System.out.println("Error: " + e.getMessage());
@@ -149,11 +151,8 @@ public class StudentMenu {
     String input = SC.nextLine().trim();
 
     try {
-      int id = Integer.parseInt(input);
-      studentService.deleteStudentById(id);
-      System.out.println("Student with ID " + id + " has been deleted.");
-    } catch (NumberFormatException e) {
-      System.out.println("Invalid ID format.");
+      studentService.deleteStudentById(input);
+      System.out.println("Student with ID " + input + " has been deleted.");
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }

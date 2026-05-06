@@ -64,7 +64,13 @@ public class StudentService {
 
   // FIXED: Corrected constructor arguments and method names (getId instead of
   // getStt)
-  private void validateStudentData(String name, String major, String gender) {
+  private void validateStudentData(String id, String name, String major, String gender) {
+    if (id == null || id.trim().isEmpty()) {
+      throw new IllegalArgumentException("ID is required.");
+    }
+    if (id.contains(",")) {
+      throw new IllegalArgumentException("ID cannot contain commas.");
+    }
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Student name is required.");
     }
@@ -88,30 +94,22 @@ public class StudentService {
     }
   }
 
-  public Student addStudent(String name, String major, String gender) {
+  public Student addStudent(String id, String name, String major, String gender) {
     // 1. Validate the data first
-    validateStudentData(name, major, gender);
+    validateStudentData(id, name, major, gender);
 
     // 2. Sanitize inputs (remove commas to prevent CSV breakage)
+    String cleanId = id.trim();
     String cleanName = name.trim().replace(",", " ");
     String cleanMajor = major.trim().replace(",", " ");
     String cleanGender = gender.trim().replace(",", " ");
 
-    List<Student> students = getStudents();
-    int nextId = students.stream()
-        .map(Student::getId)
-        .mapToInt(id -> {
-          try {
-            return Integer.parseInt(id);
-          } catch (NumberFormatException e) {
-            return 0;
-          }
-        })
-        .max()
-        .orElse(0) + 1;
+    if (findById(cleanId) != null) {
+      throw new IllegalArgumentException("ID already exists: " + cleanId);
+    }
 
     Student s = new Student(
-        String.valueOf(nextId),
+        cleanId,
         cleanName,
         Major.valueOf(cleanMajor.toUpperCase()),
         Gender.valueOf(cleanGender.toUpperCase()),
@@ -122,17 +120,22 @@ public class StudentService {
   }
 
   // FIXED: Changed stt to id to match your Student model
-  public Student deleteStudentById(int idToDelete) {
+  public Student deleteStudentById(String idToDelete) {
+    if (idToDelete == null || idToDelete.trim().isEmpty()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
+    }
+
     List<Student> students = getStudents();
     if (students.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
+    String cleanId = idToDelete.trim();
     Student deletedStudent = null;
     List<Student> newList = new ArrayList<>();
 
     for (Student s : students) {
-      if (Integer.parseInt(s.getId()) == idToDelete) {
+      if (s.getId().equals(cleanId)) {
         deletedStudent = s;
         continue; // Skip adding to new list
       }
@@ -143,7 +146,7 @@ public class StudentService {
       studentRepository.writeAll(newList);
       return deletedStudent;
     } else {
-      throw new IllegalArgumentException("ID not found: " + idToDelete);
+      throw new IllegalArgumentException("ID not found: " + cleanId);
 
     }
   }
