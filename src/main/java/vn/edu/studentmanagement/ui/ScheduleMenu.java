@@ -35,14 +35,26 @@ public class ScheduleMenu {
 
       String choice = SC.nextLine().trim();
       switch (choice) {
-        case "1" -> viewSchedule();
-        case "2" -> addCourseToSchedule();
-        case "3" -> removeCourseFromSchedule();
+        case "1" -> {
+          viewSchedule();
+          pause();
+        }
+        case "2" -> {
+          addCourseToSchedule();
+          pause();
+        }
+        case "3" -> {
+          removeCourseFromSchedule();
+          pause();
+        }
         case "0" -> {
           scheduleService.flushPendingChanges();
           return;
         }
-        default -> System.out.println("[!] Invalid choice.");
+        default -> {
+          System.out.println("[!] Invalid choice.");
+          pause();
+        }
       }
     }
   }
@@ -140,6 +152,11 @@ public class ScheduleMenu {
 
   private static void printError(RuntimeException e) {
     System.out.println("[ERROR] " + e.getMessage());
+  }
+
+  private static void pause() {
+    System.out.print("\nPress Enter to continue...");
+    SC.nextLine();
   }
 
   private static void renderCourseTable(List<Course> courses) {
