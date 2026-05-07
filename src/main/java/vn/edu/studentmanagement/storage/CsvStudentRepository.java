@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,8 +28,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
         Files.createFile(CSV_PATH);
       }
     } catch (IOException e) {
-      System.err.println("Failed to create/open CSV file: " + e.getMessage());
-      System.exit(1);
+      throw new StorageException("Failed to create/open student CSV file.", e);
     }
   }
 
@@ -62,8 +60,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
       }
       return students;
     } catch (IOException e) {
-      System.err.println("Failed to read CSV: " + e.getMessage());
-      return Collections.emptyList();
+      throw new StorageException("Failed to read student CSV file.", e);
     }
   }
 
@@ -77,7 +74,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
-      System.err.println("Failed to write CSV: " + e.getMessage());
+      throw new StorageException("Failed to write student CSV file.", e);
     }
   }
 
@@ -94,7 +91,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
           StandardOpenOption.CREATE,
           StandardOpenOption.APPEND);
     } catch (IOException e) {
-      System.err.println("Failed to append to CSV: " + e.getMessage());
+      throw new StorageException("Failed to append student CSV file.", e);
     }
   }
 }
