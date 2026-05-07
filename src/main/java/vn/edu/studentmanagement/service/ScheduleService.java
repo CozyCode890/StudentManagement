@@ -84,7 +84,7 @@ public class ScheduleService {
       String sid = studentId.trim();
       String cid = normalizeCourseId(courseId);
 
-      Student student = studentService.findById(sid);
+      Student student = studentService.filterById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
@@ -179,7 +179,7 @@ public class ScheduleService {
     }
   }
 
-  public Schedule getSchedule(String studentId) {
+  public Schedule filterScheduleByStudentId(String studentId) {
     if (studentId == null || studentId.isBlank()) {
       throw new IllegalArgumentException("ID cannot be empty.");
     }
@@ -192,8 +192,8 @@ public class ScheduleService {
     return schedule;
   }
 
-  public List<Course> getScheduleSortedByDayThenStart(String studentId) {
-    List<Course> courses = new ArrayList<>(getSchedule(studentId).getSelectedCourses());
+  public List<Course> filterScheduleByStudentIdSortedByDayThenStart(String studentId) {
+    List<Course> courses = new ArrayList<>(filterScheduleByStudentId(studentId).getSelectedCourses());
     courses.sort(
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));

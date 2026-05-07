@@ -35,19 +35,19 @@ public class StudentService {
     return new ArrayList<>(studentsById.values());
   }
 
-  public List<Student> findAll() {
+  public List<Student> displayAll() {
     return new ArrayList<>(getStudents());
   }
 
-  public List<Student> findAllSortedById() {
+  public List<Student> displayAllSortedById() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getId))
         .collect(Collectors.toList());
   }
 
-  public List<Student> searchStudents(String query) {
+  public List<Student> filterStudents(String query) {
     if (query == null || query.trim().isEmpty()) {
-      return findAll();
+      return displayAll();
     }
 
     String lowerQuery = query.toLowerCase().trim();
@@ -65,7 +65,7 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  public List<Student> findAllSortedByLastName() {
+  public List<Student> displayAllSortedByLastName() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
         .collect(Collectors.toList());
@@ -111,7 +111,7 @@ public class StudentService {
     String cleanMajor = major.trim().replace(",", " ");
     String cleanGender = normalizeGender(gender);
 
-    if (findById(cleanId) != null) {
+    if (filterById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
 
@@ -149,7 +149,7 @@ public class StudentService {
     }
   }
 
-  public Student findById(String id) {
+  public Student filterById(String id) {
     if (id == null || id.trim().isEmpty()) {
       throw new IllegalArgumentException("ID cannot be empty.");
     }

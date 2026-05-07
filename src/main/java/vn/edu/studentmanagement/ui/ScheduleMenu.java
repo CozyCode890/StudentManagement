@@ -65,7 +65,7 @@ public class ScheduleMenu {
       return;
 
     try {
-      List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
+      List<Course> courses = scheduleService.filterScheduleByStudentIdSortedByDayThenStart(student.getId());
 
       System.out.println("\n>>> SCHEDULE FOR: " + student.getFullName().toUpperCase() + " (ID: " + student.getId() + ")");
       if (courses.isEmpty()) {
@@ -119,7 +119,7 @@ public class ScheduleMenu {
       return;
 
     try {
-      List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
+      List<Course> currentCourses = scheduleService.filterScheduleByStudentId(student.getId()).getSelectedCourses();
       if (currentCourses.isEmpty()) {
         ConsoleIO.printWarning("This student has no courses to remove.");
         return;
@@ -144,7 +144,7 @@ public class ScheduleMenu {
   private static Student askForStudent() {
     String sid = ConsoleIO.promptTrimmed("Enter student ID: ");
     try {
-      Student s = studentService.findById(sid);
+      Student s = studentService.filterById(sid);
       if (s == null) {
         ConsoleIO.printWarning("Student not found with ID: " + sid);
       }

@@ -60,7 +60,7 @@ public class StudentMenu {
       if (choice.equals("0"))
         break;
 
-      List<Student> students = studentService.findAll();
+      List<Student> students = studentService.displayAll();
       String emptyMessage = "Student list is empty.";
       if (choice.equals("1")) {
         viewStudentsPaginated(students, emptyMessage);
