@@ -26,14 +26,23 @@ public class StudentMenu {
       String choice = ConsoleIO.promptTrimmed("Choose: ");
       switch (choice) {
         case "1" -> viewStudentMenu();
-        case "2" -> addStudent();
-        case "3" -> deleteStudentById();
+        case "2" -> {
+          addStudent();
+          ConsoleIO.pause();
+        }
+        case "3" -> {
+          deleteStudentById();
+          ConsoleIO.pause();
+        }
         case "0" -> {
           if (flushPendingStudentChanges()) {
             return;
           }
         }
-        default -> ConsoleIO.printWarning("Invalid choice.");
+        default -> {
+          ConsoleIO.printWarning("Invalid choice.");
+          ConsoleIO.pause();
+        }
       }
     }
   }
