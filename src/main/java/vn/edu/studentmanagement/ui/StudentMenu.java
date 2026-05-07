@@ -6,14 +6,17 @@ import java.util.Objects;
 import java.util.Scanner;
 
 import vn.edu.studentmanagement.model.Student;
+import vn.edu.studentmanagement.service.ScheduleService;
 import vn.edu.studentmanagement.service.StudentService;
 
 public class StudentMenu {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
   private static StudentService studentService;
+  private static ScheduleService scheduleService;
 
-  public static void run(StudentService sharedStudentService) {
+  public static void run(StudentService sharedStudentService, ScheduleService sharedScheduleService) {
     studentService = Objects.requireNonNull(sharedStudentService);
+    scheduleService = Objects.requireNonNull(sharedScheduleService);
     while (true) {
       ConsoleIO.clearScreen();
 
@@ -183,7 +186,11 @@ public class StudentMenu {
 
     try {
       studentService.deleteStudentById(input);
+      boolean removedSchedule = scheduleService.removeScheduleByStudentId(input);
       System.out.println("Student with ID " + input + " has been deleted.");
+      if (removedSchedule) {
+        System.out.println("Schedule for student ID " + input + " has also been removed.");
+      }
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }

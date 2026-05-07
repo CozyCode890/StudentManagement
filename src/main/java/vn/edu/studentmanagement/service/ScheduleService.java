@@ -158,6 +158,20 @@ public class ScheduleService {
     return removed;
   }
 
+  public boolean removeScheduleByStudentId(String studentId) {
+    if (studentId == null || studentId.isBlank()) {
+      throw new IllegalArgumentException("ID cannot be empty.");
+    }
+
+    Schedule removedSchedule = schedulesByStudentId.remove(studentId.trim());
+    if (removedSchedule == null) {
+      return false;
+    }
+
+    markScheduleChanged();
+    return true;
+  }
+
   public void flushPendingChanges() {
     if (pendingScheduleChanges > 0) {
       saveSchedules();

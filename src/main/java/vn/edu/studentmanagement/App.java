@@ -39,7 +39,7 @@ public class App {
       }
 
       switch (choice) {
-        case "1" -> StudentMenu.run(studentService);
+        case "1" -> StudentMenu.run(studentService, scheduleService);
         case "2" -> ScheduleMenu.run(studentService, courseCatalog, scheduleService);
         default -> {
           System.out.println("Invalid choice. Please select 1, 2, 0, or q.\n");
