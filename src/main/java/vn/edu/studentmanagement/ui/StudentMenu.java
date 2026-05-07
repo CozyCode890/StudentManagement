@@ -53,23 +53,30 @@ public class StudentMenu {
         break;
 
       List<Student> students = studentService.findAll();
+      String emptyMessage = "Student list is empty.";
       if (choice.equals("2")) {
         System.out.print("Enter name keyword: ");
         String keyword = SC.nextLine().toLowerCase();
         students = students.stream()
             .filter(s -> s.getFullName().toLowerCase().contains(keyword))
             .toList();
+        emptyMessage = "No students matched your search.";
       }
 
-      viewStudentsPaginated(students);
+      viewStudentsPaginated(students, emptyMessage);
     }
   }
 
   public static void viewStudentsPaginated(List<Student> allStudents) {
+    viewStudentsPaginated(allStudents, "Student list is empty.");
+  }
+
+  private static void viewStudentsPaginated(List<Student> allStudents, String emptyMessage) {
     int ROWS_PER_PAGE = 10;
 
     if (allStudents.isEmpty()) {
-      System.out.println("\n(No students yet)\n");
+      System.out.println("\n[!] " + emptyMessage);
+      pause();
       return;
     }
 
@@ -159,5 +166,10 @@ public class StudentMenu {
     } catch (Exception e) {
       System.out.println(e.getMessage());
     }
+  }
+
+  private static void pause() {
+    System.out.print("\nPress Enter to continue...");
+    SC.nextLine();
   }
 }
