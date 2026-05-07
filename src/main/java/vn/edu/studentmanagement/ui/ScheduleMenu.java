@@ -96,16 +96,19 @@ public class ScheduleMenu {
       System.out.println("\nMajor courses:");
       renderDefinitionTable(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
 
-      // 2. Nhập mã môn học
-      System.out.print("\nEnter Course ID to add: ");
-      String courseId = SC.nextLine().trim().toUpperCase();
+      while (true) {
+        System.out.print("\nEnter Course ID to add (B to back): ");
+        String courseId = SC.nextLine().trim().toUpperCase();
+        if (courseId.equals("B")) {
+          return;
+        }
 
-      // 3. Gọi service xử lý logic (check trùng, check conflict, check max 3 môn)
-      ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
+        ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
+        if (result.isSuccess()) {
+          System.out.println("[OK] " + result.getMessage());
+          return;
+        }
 
-      if (result.isSuccess()) {
-        System.out.println("[OK] " + result.getMessage());
-      } else {
         System.out.println("[ERROR] " + result.getMessage());
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
