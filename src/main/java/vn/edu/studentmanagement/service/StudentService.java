@@ -13,6 +13,7 @@ import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.storage.CsvRepository;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
+import vn.edu.studentmanagement.storage.StorageException;
 
 public class StudentService {
   private static final int SAVE_BATCH_SIZE = 5;
@@ -162,16 +163,24 @@ public class StudentService {
   }
 
   private void loadStudents() {
-    for (Student student : studentRepository.readAll()) {
-      if (student.getId() != null && !student.getId().isBlank()) {
-        studentsById.put(student.getId().trim(), student);
+    try {
+      for (Student student : studentRepository.readAll()) {
+        if (student.getId() != null && !student.getId().isBlank()) {
+          studentsById.put(student.getId().trim(), student);
+        }
       }
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to load students: " + getCauseMessage(e), e);
     }
   }
 
   private void saveStudents() {
-    studentRepository.writeAll(new ArrayList<>(studentsById.values()));
-    pendingStudentChanges = 0;
+    try {
+      studentRepository.writeAll(new ArrayList<>(studentsById.values()));
+      pendingStudentChanges = 0;
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to save students: " + getCauseMessage(e), e);
+    }
   }
 
   private void markStudentChanged() {
@@ -179,5 +188,10 @@ public class StudentService {
     if (pendingStudentChanges >= SAVE_BATCH_SIZE) {
       saveStudents();
     }
+  }
+
+  private String getCauseMessage(StorageException e) {
+    Throwable cause = e.getCause();
+    return cause != null && cause.getMessage() != null ? cause.getMessage() : e.getMessage();
   }
 }

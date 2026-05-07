@@ -33,8 +33,9 @@ public class StudentMenu {
         case "2" -> addStudent();
         case "3" -> deleteStudentById();
         case "0" -> {
-          studentService.flushPendingChanges();
-          return;
+          if (flushPendingStudentChanges()) {
+            return;
+          }
         }
         default -> System.out.println("Invalid choice.");
       }
@@ -175,8 +176,8 @@ public class StudentMenu {
     try {
       Student student = studentService.addStudent(id, name, major, gender);
       System.out.println("Successfully added ID: " + student.getId());
-    } catch (Exception e) {
-      System.out.println("Error: " + e.getMessage());
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
     }
   }
 
@@ -191,9 +192,24 @@ public class StudentMenu {
       if (removedSchedule) {
         System.out.println("Schedule for student ID " + input + " has also been removed.");
       }
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      printError(e);
     }
+  }
+
+  private static boolean flushPendingStudentChanges() {
+    try {
+      studentService.flushPendingChanges();
+      return true;
+    } catch (IllegalStateException e) {
+      printError(e);
+      pause();
+      return false;
+    }
+  }
+
+  private static void printError(RuntimeException e) {
+    System.out.println("[ERROR] " + e.getMessage());
   }
 
   private static void pause() {
