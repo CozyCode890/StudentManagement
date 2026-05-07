@@ -32,10 +32,16 @@ public class App {
       String choice = SC.nextLine().trim();
 
       if (choice.equalsIgnoreCase("q") || choice.equals("0")) {
-        studentService.flushPendingChanges();
-        scheduleService.flushPendingChanges();
-        System.out.println("Bye 👋");
-        break;
+        try {
+          studentService.flushPendingChanges();
+          scheduleService.flushPendingChanges();
+          System.out.println("Bye 👋");
+          break;
+        } catch (IllegalStateException e) {
+          System.out.println("[ERROR] " + e.getMessage());
+          System.out.print("Press Enter to continue...");
+          SC.nextLine();
+        }
       }
 
       switch (choice) {

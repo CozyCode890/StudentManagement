@@ -37,7 +37,7 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
         Files.createFile(CSV_PATH);
       }
     } catch (IOException e) {
-      System.err.println("Failed to create/open schedule CSV file: " + e.getMessage());
+      throw new StorageException("Failed to create/open schedule CSV file.", e);
     }
   }
 
@@ -76,11 +76,9 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
 
       return new ArrayList<>(schedulesByStudentId.values());
     } catch (IOException e) {
-      System.err.println("Failed to read schedule CSV: " + e.getMessage());
-      return List.of();
+      throw new StorageException("Failed to read schedule CSV file.", e);
     } catch (IllegalStateException e) {
-      System.err.println("Failed to build schedule from CSV: " + e.getMessage());
-      return List.of();
+      throw new StorageException("Failed to build schedule from CSV file.", e);
     }
   }
 
@@ -96,7 +94,7 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
-      System.err.println("Failed to write schedule CSV: " + e.getMessage());
+      throw new StorageException("Failed to write schedule CSV file.", e);
     }
   }
 
@@ -119,7 +117,7 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
           StandardOpenOption.CREATE,
           StandardOpenOption.APPEND);
     } catch (IOException e) {
-      System.err.println("Failed to append to schedule CSV: " + e.getMessage());
+      throw new StorageException("Failed to append schedule CSV file.", e);
     }
   }
 

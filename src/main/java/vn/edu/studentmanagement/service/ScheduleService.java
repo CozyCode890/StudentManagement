@@ -16,6 +16,7 @@ import vn.edu.studentmanagement.model.TimeSlot;
 import vn.edu.studentmanagement.storage.CourseCatalog;
 import vn.edu.studentmanagement.storage.CsvRepository;
 import vn.edu.studentmanagement.storage.CsvScheduleRepository;
+import vn.edu.studentmanagement.storage.StorageException;
 
 public class ScheduleService {
   private static final int SAVE_BATCH_SIZE = 5;
@@ -208,16 +209,24 @@ public class ScheduleService {
   }
 
   private void loadSchedules() {
-    for (Schedule schedule : scheduleRepository.readAll()) {
-      if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
-        schedulesByStudentId.put(schedule.getStudentId().trim(), schedule);
+    try {
+      for (Schedule schedule : scheduleRepository.readAll()) {
+        if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
+          schedulesByStudentId.put(schedule.getStudentId().trim(), schedule);
+        }
       }
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to load schedules: " + getCauseMessage(e), e);
     }
   }
 
   private void saveSchedules() {
-    scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
-    pendingScheduleChanges = 0;
+    try {
+      scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
+      pendingScheduleChanges = 0;
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to save schedules: " + getCauseMessage(e), e);
+    }
   }
 
   private void markScheduleChanged() {
@@ -225,5 +234,10 @@ public class ScheduleService {
     if (pendingScheduleChanges >= SAVE_BATCH_SIZE) {
       saveSchedules();
     }
+  }
+
+  private String getCauseMessage(StorageException e) {
+    Throwable cause = e.getCause();
+    return cause != null && cause.getMessage() != null ? cause.getMessage() : e.getMessage();
   }
 }

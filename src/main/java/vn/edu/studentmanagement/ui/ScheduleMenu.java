@@ -53,8 +53,9 @@ public class ScheduleMenu {
           pause();
         }
         case "0" -> {
-          scheduleService.flushPendingChanges();
-          return;
+          if (flushPendingScheduleChanges()) {
+            return;
+          }
         }
         default -> {
           System.out.println("[!] Invalid choice.");
@@ -162,6 +163,17 @@ public class ScheduleMenu {
 
   private static void printError(RuntimeException e) {
     System.out.println("[ERROR] " + e.getMessage());
+  }
+
+  private static boolean flushPendingScheduleChanges() {
+    try {
+      scheduleService.flushPendingChanges();
+      return true;
+    } catch (IllegalStateException e) {
+      printError(e);
+      pause();
+      return false;
+    }
   }
 
   private static void pause() {

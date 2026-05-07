@@ -200,6 +200,7 @@ public class StudentMenu {
   private static boolean flushPendingStudentChanges() {
     try {
       studentService.flushPendingChanges();
+      scheduleService.flushPendingChanges();
       return true;
     } catch (IllegalStateException e) {
       printError(e);
