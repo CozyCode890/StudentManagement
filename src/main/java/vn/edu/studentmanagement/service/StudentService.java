@@ -54,13 +54,9 @@ public class StudentService {
 
     return getStudents().stream()
         .filter(student ->
-        // Matches ID
         String.valueOf(student.getId()).contains(lowerQuery) ||
-        // Matches Full Name (Searching by Last Name)
             (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
-            // Matches Gender
             (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
-            // Matches Major
             (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
         .collect(Collectors.toList());
   }
@@ -71,8 +67,6 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  // FIXED: Corrected constructor arguments and method names (getId instead of
-  // getStt)
   private void validateStudentData(String id, String name, String major, String gender) {
     if (id == null || id.trim().isEmpty()) {
       throw new IllegalArgumentException("ID is required.");
@@ -102,10 +96,8 @@ public class StudentService {
   }
 
   public Student addStudent(String id, String name, String major, String gender) {
-    // 1. Validate the data first
     validateStudentData(id, name, major, gender);
 
-    // 2. Sanitize inputs (remove commas to prevent CSV breakage)
     String cleanId = id.trim();
     String cleanName = name.trim().replace(",", " ");
     String cleanMajor = major.trim().replace(",", " ");
@@ -127,7 +119,6 @@ public class StudentService {
     return s;
   }
 
-  // FIXED: Changed stt to id to match your Student model
   public Student deleteStudentById(String idToDelete) {
     if (idToDelete == null || idToDelete.trim().isEmpty()) {
       throw new IllegalArgumentException("ID cannot be empty.");

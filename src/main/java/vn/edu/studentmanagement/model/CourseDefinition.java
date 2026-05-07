@@ -4,7 +4,7 @@ public class CourseDefinition {
   private String courseId;
   private String name;
   private CourseType type;
-  private Major major; // only for MAJOR courses; null for GENERAL
+  private Major major;
 
   public CourseDefinition() {}
 

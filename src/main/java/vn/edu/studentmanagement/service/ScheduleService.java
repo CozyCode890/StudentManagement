@@ -60,9 +60,7 @@ public class ScheduleService {
     loadSchedules();
   }
 
-  /**
-   * overlap if (same day) && startA < endB && startB < endA
-   */
+
   public boolean overlap(TimeSlot a, TimeSlot b) {
     if (a == null || b == null)
       return false;
@@ -71,7 +69,6 @@ public class ScheduleService {
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
-  // Change the method signature to accept courseId as a String
   public AddCourseResult addCourse(String studentId, String courseId) {
     try {
       if (studentId == null || studentId.isBlank()) {
@@ -103,7 +100,6 @@ public class ScheduleService {
 
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
 
-      // Prevent duplicate courseId within one schedule.
       for (Course selected : schedule.getSelectedCourses()) {
         if (selected.getCourseId().equals(cid)) {
           throw new IllegalArgumentException("Course already added");
@@ -114,7 +110,6 @@ public class ScheduleService {
         throw new IllegalArgumentException("Max 3 courses");
       }
 
-      // Conflict checking against all selected courses
       for (Course selected : schedule.getSelectedCourses()) {
         if (overlap(selected.getTimeSlot(), proposedTime)) {
           throw new IllegalArgumentException("Conflict time");
@@ -186,7 +181,6 @@ public class ScheduleService {
     String sid = studentId.trim();
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
-      // Always return a schedule object for consistent UI.
       schedule = new Schedule(sid);
     }
     return schedule;

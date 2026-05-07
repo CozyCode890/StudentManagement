@@ -85,7 +85,6 @@ public class ScheduleMenu {
       return;
     }
 
-    // 1. Hiển thị danh sách môn học có sẵn cho SV này
     try {
       System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
       System.out.println("\nGeneral courses:");
@@ -139,7 +138,6 @@ public class ScheduleMenu {
     }
   }
 
-  // --- HELPER METHODS ---
 
   private static Student askForStudent() {
     String sid = ConsoleIO.promptTrimmed("Enter student ID: ");

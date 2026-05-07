@@ -112,7 +112,6 @@ public class StudentMenu {
 
       System.out.println("\n--- Viewing Page " + (currentPage + 1) + " of " + totalPages + " ---");
 
-      // Pass "start + 1" so STT shows correctly (e.g., 11, 12, 13... on page 2)
       renderTable(pageSlice, start + 1);
 
       System.out.println("\n[N] Next | [P] Previous | [B] Back");

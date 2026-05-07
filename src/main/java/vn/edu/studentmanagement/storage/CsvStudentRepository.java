@@ -43,7 +43,6 @@ public class CsvStudentRepository implements CsvRepository<Student> {
         if (line.trim().isEmpty())
           continue;
 
-        // CSV format: id,fullName,major,gender
         String[] parts = line.split(",");
         if (parts.length < 4)
           continue;
@@ -55,7 +54,6 @@ public class CsvStudentRepository implements CsvRepository<Student> {
           Gender gender = Gender.valueOf(parts[3].trim().toUpperCase());
           students.add(new Student(id, fullName, major, gender, 0));
         } catch (IllegalArgumentException ignored) {
-          // skip malformed lines
         }
       }
       return students;

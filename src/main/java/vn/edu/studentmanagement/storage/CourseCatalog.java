@@ -15,9 +15,7 @@ import vn.edu.studentmanagement.model.CourseType;
 import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.TimeSlot;
 
-/**
- * Hardcoded course catalog for now (you can switch to CSV/JSON later).
- */
+
 public class CourseCatalog {
   private final Map<String, CourseDefinition> byCourseId;
   private final Map<String, TimeSlot> timeSlotsByCourseId;
@@ -43,7 +41,6 @@ public class CourseCatalog {
     TimeSlot satMorning = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
     TimeSlot satAfternoon = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(14, 0), LocalTime.of(15, 30));
 
-    // General courses (fixed)
     tmp.put("GEN101", new CourseDefinition("GEN101", "Calculus", CourseType.GENERAL, null));
     slots.put("GEN101", monMorning);
     tmp.put("GEN102", new CourseDefinition("GEN102", "Physics", CourseType.GENERAL, null));
@@ -53,7 +50,6 @@ public class CourseCatalog {
     tmp.put("GEN104", new CourseDefinition("GEN104", "HCM Thought", CourseType.GENERAL, null));
     slots.put("GEN104", thurMorning);
 
-    // Major courses (example sets for IT/CS/DS)
     tmp.put("IT201", new CourseDefinition("IT201", "Programming Fundamentals", CourseType.MAJOR, Major.IT));
     slots.put("IT201", monMid);
     tmp.put("IT202", new CourseDefinition("IT202", "Database Systems", CourseType.MAJOR, Major.IT));
@@ -136,9 +132,7 @@ public class CourseCatalog {
     return all;
   }
 
-  /**
-   * Scheduled slots currently used by catalog courses.
-   */
+
   public List<TimeSlot> getValidTimeSlots() {
     return new ArrayList<>(timeSlotsByCourseId.values());
   }
