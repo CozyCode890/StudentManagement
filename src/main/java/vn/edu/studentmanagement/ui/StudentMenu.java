@@ -111,31 +111,52 @@ public class StudentMenu {
     }
   }
 
-  // 3. Update your renderTable to accept a starting STT
   private static void renderTable(List<Student> students, int startStt) {
-    String format = "| %-4s | %-6s | %-20s | %-10s | %-15s |%n";
-    String line = "+------+--------+----------------------+------------+-----------------+";
+    int sttWidth = Math.max(3, String.valueOf(startStt + students.size() - 1).length());
+    int idWidth = Math.max("ID".length(), maxLength(students, s -> s.getId()));
+    int nameWidth = Math.max("Full Name".length(), maxLength(students, s -> s.getFullName()));
+    int genderWidth = Math.max("Gender".length(), maxLength(students, s -> String.valueOf(s.getGender())));
+    int majorWidth = Math.max("Major".length(), maxLength(students, s -> String.valueOf(s.getMajor())));
+
+    String format = "| %-" + sttWidth + "s | %-" + idWidth + "s | %-" + nameWidth + "s | %-"
+        + genderWidth + "s | %-" + majorWidth + "s |%n";
+    String line = buildSeparator(sttWidth, idWidth, nameWidth, genderWidth, majorWidth);
 
     System.out.println(line);
     System.out.printf(format, "STT", "ID", "Full Name", "Gender", "Major");
     System.out.println(line);
 
-    int currentStt = startStt; // Start from the passed value instead of 1
+    int currentStt = startStt;
     for (Student s : students) {
       System.out.printf(format,
           currentStt++,
-          s.getId(),
-          truncate(s.getFullName(), 20),
-          truncate(String.valueOf(s.getGender()), 10),
-          truncate(String.valueOf(s.getMajor()), 15));
+          safeText(s.getId()),
+          safeText(s.getFullName()),
+          safeText(String.valueOf(s.getGender())),
+          safeText(String.valueOf(s.getMajor())));
     }
     System.out.println(line);
   }
 
-  private static String truncate(String text, int length) {
-    if (text == null)
-      return "";
-    return text.length() <= length ? text : text.substring(0, length - 3) + "...";
+  private static int maxLength(List<Student> students, java.util.function.Function<Student, String> valueExtractor) {
+    return students.stream()
+        .map(valueExtractor)
+        .map(StudentMenu::safeText)
+        .mapToInt(String::length)
+        .max()
+        .orElse(0);
+  }
+
+  private static String buildSeparator(int... widths) {
+    StringBuilder line = new StringBuilder("+");
+    for (int width : widths) {
+      line.append("-".repeat(width + 2)).append("+");
+    }
+    return line.toString();
+  }
+
+  private static String safeText(String text) {
+    return text == null ? "" : text;
   }
 
   public static void addStudent() {
