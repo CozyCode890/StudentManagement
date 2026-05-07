@@ -1,16 +1,13 @@
 package vn.edu.studentmanagement.ui;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.service.ScheduleService;
 import vn.edu.studentmanagement.service.StudentService;
 
 public class StudentMenu {
-  private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
   private static StudentService studentService;
   private static ScheduleService scheduleService;
 
@@ -25,9 +22,8 @@ public class StudentMenu {
       System.out.println("2) Add New Student");
       System.out.println("3) Delete Student (by ID)");
       System.out.println("0) Back to main menu");
-      System.out.print("Choose: ");
 
-      String choice = SC.nextLine().trim();
+      String choice = ConsoleIO.promptTrimmed("Choose: ");
       switch (choice) {
         case "1" -> viewStudentMenu();
         case "2" -> addStudent();
@@ -37,7 +33,7 @@ public class StudentMenu {
             return;
           }
         }
-        default -> System.out.println("Invalid choice.");
+        default -> ConsoleIO.printWarning("Invalid choice.");
       }
     }
   }
@@ -50,17 +46,15 @@ public class StudentMenu {
       System.out.println("1) Show All Students");
       System.out.println("2) Search by Name");
       System.out.println("0) Return");
-      System.out.print("Choice: ");
 
-      String choice = SC.nextLine().trim();
+      String choice = ConsoleIO.promptTrimmed("Choice: ");
       if (choice.equals("0"))
         break;
 
       List<Student> students = studentService.findAll();
       String emptyMessage = "Student list is empty.";
       if (choice.equals("2")) {
-        System.out.print("Enter name keyword: ");
-        String keyword = SC.nextLine().toLowerCase();
+        String keyword = ConsoleIO.prompt("Enter name keyword: ").toLowerCase();
         students = students.stream()
             .filter(s -> s.getFullName().toLowerCase().contains(keyword))
             .toList();
@@ -79,8 +73,9 @@ public class StudentMenu {
     int ROWS_PER_PAGE = 10;
 
     if (allStudents.isEmpty()) {
-      System.out.println("\n[!] " + emptyMessage);
-      pause();
+      System.out.println();
+      ConsoleIO.printWarning(emptyMessage);
+      ConsoleIO.pause();
       return;
     }
 
@@ -100,8 +95,7 @@ public class StudentMenu {
       renderTable(pageSlice, start + 1);
 
       System.out.println("\n[N] Next | [P] Previous | [B] Back");
-      System.out.print("Action: ");
-      String choice = SC.nextLine().trim().toUpperCase();
+      String choice = ConsoleIO.promptUpperTrimmed("Action: ");
 
       if (choice.equals("N") && currentPage < totalPages - 1) {
         currentPage++;
@@ -110,7 +104,7 @@ public class StudentMenu {
       } else if (choice.equals("B")) {
         break;
       } else {
-        System.out.println("[!] Invalid choice or no more pages.");
+        ConsoleIO.printWarning("Invalid choice or no more pages.");
       }
     }
   }
@@ -124,7 +118,7 @@ public class StudentMenu {
 
     String format = "| %-" + sttWidth + "s | %-" + idWidth + "s | %-" + nameWidth + "s | %-"
         + genderWidth + "s | %-" + majorWidth + "s |%n";
-    String line = buildSeparator(sttWidth, idWidth, nameWidth, genderWidth, majorWidth);
+    String line = ConsoleIO.buildSeparator(sttWidth, idWidth, nameWidth, genderWidth, majorWidth);
 
     System.out.println(line);
     System.out.printf(format, "STT", "ID", "Full Name", "Gender", "Major");
@@ -134,10 +128,10 @@ public class StudentMenu {
     for (Student s : students) {
       System.out.printf(format,
           currentStt++,
-          safeText(s.getId()),
-          safeText(s.getFullName()),
-          safeText(String.valueOf(s.getGender())),
-          safeText(String.valueOf(s.getMajor())));
+          ConsoleIO.safeText(s.getId()),
+          ConsoleIO.safeText(s.getFullName()),
+          ConsoleIO.safeText(String.valueOf(s.getGender())),
+          ConsoleIO.safeText(String.valueOf(s.getMajor())));
     }
     System.out.println(line);
   }
@@ -145,45 +139,28 @@ public class StudentMenu {
   private static int maxLength(List<Student> students, java.util.function.Function<Student, String> valueExtractor) {
     return students.stream()
         .map(valueExtractor)
-        .map(StudentMenu::safeText)
+        .map(ConsoleIO::safeText)
         .mapToInt(String::length)
         .max()
         .orElse(0);
   }
 
-  private static String buildSeparator(int... widths) {
-    StringBuilder line = new StringBuilder("+");
-    for (int width : widths) {
-      line.append("-".repeat(width + 2)).append("+");
-    }
-    return line.toString();
-  }
-
-  private static String safeText(String text) {
-    return text == null ? "" : text;
-  }
-
   public static void addStudent() {
-    System.out.print("\nEnter ID: ");
-    String id = SC.nextLine();
-    System.out.print("\nEnter name: ");
-    String name = SC.nextLine();
-    System.out.print("Enter major: ");
-    String major = SC.nextLine();
-    System.out.print("Enter gender (Male/Female): ");
-    String gender = SC.nextLine();
+    String id = ConsoleIO.prompt("\nEnter ID: ");
+    String name = ConsoleIO.prompt("\nEnter name: ");
+    String major = ConsoleIO.prompt("Enter major: ");
+    String gender = ConsoleIO.prompt("Enter gender (Male/Female): ");
 
     try {
       Student student = studentService.addStudent(id, name, major, gender);
       System.out.println("Successfully added ID: " + student.getId());
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
     }
   }
 
   public static void deleteStudentById() {
-    System.out.print("\nEnter ID to delete: ");
-    String input = SC.nextLine().trim();
+    String input = ConsoleIO.promptTrimmed("\nEnter ID to delete: ");
 
     try {
       studentService.deleteStudentById(input);
@@ -193,7 +170,7 @@ public class StudentMenu {
         System.out.println("Schedule for student ID " + input + " has also been removed.");
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
     }
   }
 
@@ -203,18 +180,9 @@ public class StudentMenu {
       scheduleService.flushPendingChanges();
       return true;
     } catch (IllegalStateException e) {
-      printError(e);
-      pause();
+      ConsoleIO.printError(e);
+      ConsoleIO.pause();
       return false;
     }
-  }
-
-  private static void printError(RuntimeException e) {
-    System.out.println("[ERROR] " + e.getMessage());
-  }
-
-  private static void pause() {
-    System.out.print("\nPress Enter to continue...");
-    SC.nextLine();
   }
 }

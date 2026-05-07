@@ -1,9 +1,7 @@
 package vn.edu.studentmanagement.ui;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Objects;
-import java.util.Scanner;
 
 import vn.edu.studentmanagement.model.Course;
 import vn.edu.studentmanagement.model.CourseDefinition;
@@ -13,8 +11,6 @@ import vn.edu.studentmanagement.service.ScheduleService;
 import vn.edu.studentmanagement.service.StudentService;
 
 public class ScheduleMenu {
-  private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
-
   private static StudentService studentService;
   private static CourseCatalog courseCatalog;
   private static ScheduleService scheduleService;
@@ -36,21 +32,20 @@ public class ScheduleMenu {
       System.out.println("2) Add Course to Schedule");
       System.out.println("3) Remove Course from Schedule");
       System.out.println("0) Back to main menu");
-      System.out.print("Choose: ");
 
-      String choice = SC.nextLine().trim();
+      String choice = ConsoleIO.promptTrimmed("Choose: ");
       switch (choice) {
         case "1" -> {
           viewSchedule();
-          pause();
+          ConsoleIO.pause();
         }
         case "2" -> {
           addCourseToSchedule();
-          pause();
+          ConsoleIO.pause();
         }
         case "3" -> {
           removeCourseFromSchedule();
-          pause();
+          ConsoleIO.pause();
         }
         case "0" -> {
           if (flushPendingScheduleChanges()) {
@@ -58,8 +53,8 @@ public class ScheduleMenu {
           }
         }
         default -> {
-          System.out.println("[!] Invalid choice.");
-          pause();
+          ConsoleIO.printWarning("Invalid choice.");
+          ConsoleIO.pause();
         }
       }
     }
@@ -75,12 +70,12 @@ public class ScheduleMenu {
 
       System.out.println("\n>>> SCHEDULE FOR: " + student.getFullName().toUpperCase() + " (ID: " + student.getId() + ")");
       if (courses.isEmpty()) {
-        System.out.println("(No courses registered yet)");
+        ConsoleIO.printWarning("No courses registered yet");
       } else {
         renderCourseTable(courses);
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
     }
   }
 
@@ -98,22 +93,21 @@ public class ScheduleMenu {
       renderDefinitionTable(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
 
       while (true) {
-        System.out.print("\nEnter Course ID to add (B to back): ");
-        String courseId = SC.nextLine().trim().toUpperCase();
+        String courseId = ConsoleIO.promptUpperTrimmed("\nEnter Course ID to add (B to back): ");
         if (courseId.equals("B")) {
           return;
         }
 
         ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
         if (result.isSuccess()) {
-          System.out.println("[OK] " + result.getMessage());
+          ConsoleIO.printSuccess(result.getMessage());
           return;
         }
 
-        System.out.println("[ERROR] " + result.getMessage());
+        ConsoleIO.printError(result.getMessage());
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
     }
   }
 
@@ -125,44 +119,38 @@ public class ScheduleMenu {
     try {
       List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
       if (currentCourses.isEmpty()) {
-        System.out.println("[!] This student has no courses to remove.");
+        ConsoleIO.printWarning("This student has no courses to remove.");
         return;
       }
 
       renderCourseTable(currentCourses);
-      System.out.print("\nEnter Course ID to remove: ");
-      String courseId = SC.nextLine().trim().toUpperCase();
+      String courseId = ConsoleIO.promptUpperTrimmed("\nEnter Course ID to remove: ");
 
       boolean removed = scheduleService.removeCourse(student.getId(), courseId);
       if (removed) {
-        System.out.println("[OK] Course removed successfully.");
+        ConsoleIO.printSuccess("Course removed successfully.");
       } else {
-        System.out.println("[ERROR] Course ID not found in student's schedule.");
+        ConsoleIO.printError("Course ID not found in student's schedule.");
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
     }
   }
 
   // --- HELPER METHODS ---
 
   private static Student askForStudent() {
-    System.out.print("Enter student ID: ");
-    String sid = SC.nextLine().trim();
+    String sid = ConsoleIO.promptTrimmed("Enter student ID: ");
     try {
       Student s = studentService.findById(sid);
       if (s == null) {
-        System.out.println("[!] Student not found with ID: " + sid);
+        ConsoleIO.printWarning("Student not found with ID: " + sid);
       }
       return s;
     } catch (IllegalArgumentException | IllegalStateException e) {
-      printError(e);
+      ConsoleIO.printError(e);
       return null;
     }
-  }
-
-  private static void printError(RuntimeException e) {
-    System.out.println("[ERROR] " + e.getMessage());
   }
 
   private static boolean flushPendingScheduleChanges() {
@@ -170,20 +158,15 @@ public class ScheduleMenu {
       scheduleService.flushPendingChanges();
       return true;
     } catch (IllegalStateException e) {
-      printError(e);
-      pause();
+      ConsoleIO.printError(e);
+      ConsoleIO.pause();
       return false;
     }
   }
 
-  private static void pause() {
-    System.out.print("\nPress Enter to continue...");
-    SC.nextLine();
-  }
-
   private static void renderCourseTable(List<Course> courses) {
     String format = "| %-8s | %-20s | %-10s | %-15s |%n";
-    String line = "+----------+----------------------+------------+-----------------+";
+    String line = ConsoleIO.buildSeparator(8, 20, 10, 15);
     System.out.println(line);
     System.out.printf(format, "ID", "Course Name", "Day", "Time");
     System.out.println(line);
@@ -200,7 +183,7 @@ public class ScheduleMenu {
 
   private static void renderDefinitionTable(List<CourseDefinition> defs) {
     String format = "| %-8s | %-25s | %-10s |%n";
-    String line = "+----------+---------------------------+------------+";
+    String line = ConsoleIO.buildSeparator(8, 25, 10);
     System.out.println(line);
     System.out.printf(format, "ID", "Course Name", "Type");
     System.out.println(line);
