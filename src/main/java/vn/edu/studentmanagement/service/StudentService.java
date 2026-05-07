@@ -90,9 +90,9 @@ public class StudentService {
       throw new IllegalArgumentException("Gender is required.");
     }
 
-    String g = gender.trim().toLowerCase();
-    if (!g.equals("male") && !g.equals("female")) {
-      throw new IllegalArgumentException("Gender must be 'Male' or 'Female'.");
+    String g = normalizeGender(gender);
+    if (g == null) {
+      throw new IllegalArgumentException("Gender must be 'Male', 'Female', 'M', or 'F'.");
     }
 
     String m = major.trim().toUpperCase();
@@ -109,7 +109,7 @@ public class StudentService {
     String cleanId = id.trim();
     String cleanName = name.trim().replace(",", " ");
     String cleanMajor = major.trim().replace(",", " ");
-    String cleanGender = gender.trim().replace(",", " ");
+    String cleanGender = normalizeGender(gender);
 
     if (findById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
@@ -119,7 +119,7 @@ public class StudentService {
         cleanId,
         cleanName,
         Major.valueOf(cleanMajor.toUpperCase()),
-        Gender.valueOf(cleanGender.toUpperCase()),
+        Gender.valueOf(cleanGender),
         0);
     studentsById.put(cleanId, s);
     markStudentChanged();
@@ -193,5 +193,14 @@ public class StudentService {
   private String getCauseMessage(StorageException e) {
     Throwable cause = e.getCause();
     return cause != null && cause.getMessage() != null ? cause.getMessage() : e.getMessage();
+  }
+
+  private String normalizeGender(String gender) {
+    String g = gender.trim().toLowerCase();
+    return switch (g) {
+      case "m", "male" -> "MALE";
+      case "f", "female" -> "FEMALE";
+      default -> null;
+    };
   }
 }

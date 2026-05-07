@@ -41,7 +41,6 @@ public class ScheduleMenu {
         }
         case "2" -> {
           addCourseToSchedule();
-          ConsoleIO.pause();
         }
         case "3" -> {
           removeCourseFromSchedule();
@@ -81,8 +80,10 @@ public class ScheduleMenu {
 
   private static void addCourseToSchedule() {
     Student student = askForStudent();
-    if (student == null)
+    if (student == null) {
+      ConsoleIO.pause();
       return;
+    }
 
     // 1. Hiển thị danh sách môn học có sẵn cho SV này
     try {
@@ -93,7 +94,7 @@ public class ScheduleMenu {
       renderDefinitionTable(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
 
       while (true) {
-        String courseId = ConsoleIO.promptUpperTrimmed("\nEnter Course ID to add (B to back): ");
+        String courseId = ConsoleIO.promptCourseIdOrBack("\nEnter Course ID to add (B to back): ");
         if (courseId.equals("B")) {
           return;
         }
@@ -101,13 +102,14 @@ public class ScheduleMenu {
         ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
         if (result.isSuccess()) {
           ConsoleIO.printSuccess(result.getMessage());
-          return;
+          continue;
         }
 
         ConsoleIO.printError(result.getMessage());
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleIO.printError(e);
+      ConsoleIO.pause();
     }
   }
 

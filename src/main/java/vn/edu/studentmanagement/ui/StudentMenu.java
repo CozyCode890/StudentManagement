@@ -53,15 +53,20 @@ public class StudentMenu {
 
       List<Student> students = studentService.findAll();
       String emptyMessage = "Student list is empty.";
-      if (choice.equals("2")) {
+      if (choice.equals("1")) {
+        viewStudentsPaginated(students, emptyMessage);
+      } else if (choice.equals("2")) {
         String keyword = ConsoleIO.prompt("Enter name keyword: ").toLowerCase();
         students = students.stream()
             .filter(s -> s.getFullName().toLowerCase().contains(keyword))
             .toList();
         emptyMessage = "No students matched your search.";
+        viewStudentsPaginated(students, emptyMessage);
+      } else {
+        ConsoleIO.clearScreen();
+        ConsoleIO.printWarning("Invalid choice.");
+        ConsoleIO.pause();
       }
-
-      viewStudentsPaginated(students, emptyMessage);
     }
   }
 
@@ -82,12 +87,19 @@ public class StudentMenu {
     int totalStudents = allStudents.size();
     int totalPages = (int) Math.ceil((double) totalStudents / ROWS_PER_PAGE);
     int currentPage = 0;
+    String feedback = null;
 
     while (true) {
+      ConsoleIO.clearScreen();
       int start = currentPage * ROWS_PER_PAGE;
       int end = Math.min(start + ROWS_PER_PAGE, totalStudents);
 
       List<Student> pageSlice = allStudents.subList(start, end);
+
+      if (feedback != null) {
+        ConsoleIO.printWarning(feedback);
+        feedback = null;
+      }
 
       System.out.println("\n--- Viewing Page " + (currentPage + 1) + " of " + totalPages + " ---");
 
@@ -104,7 +116,7 @@ public class StudentMenu {
       } else if (choice.equals("B")) {
         break;
       } else {
-        ConsoleIO.printWarning("Invalid choice or no more pages.");
+        feedback = "Invalid choice or no more pages.";
       }
     }
   }
@@ -149,7 +161,7 @@ public class StudentMenu {
     String id = ConsoleIO.prompt("\nEnter ID: ");
     String name = ConsoleIO.prompt("\nEnter name: ");
     String major = ConsoleIO.prompt("Enter major: ");
-    String gender = ConsoleIO.prompt("Enter gender (Male/Female): ");
+    String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
 
     try {
       Student student = studentService.addStudent(id, name, major, gender);
@@ -163,9 +175,9 @@ public class StudentMenu {
     String input = ConsoleIO.promptTrimmed("\nEnter ID to delete: ");
 
     try {
-      studentService.deleteStudentById(input);
+      Student deletedStudent = studentService.deleteStudentById(input);
       boolean removedSchedule = scheduleService.removeScheduleByStudentId(input);
-      System.out.println("Student with ID " + input + " has been deleted.");
+      System.out.println("Student with ID " + deletedStudent.getId() + " has been deleted.");
       if (removedSchedule) {
         System.out.println("Schedule for student ID " + input + " has also been removed.");
       }

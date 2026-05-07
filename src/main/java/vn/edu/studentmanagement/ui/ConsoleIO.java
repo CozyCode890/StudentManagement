@@ -28,6 +28,49 @@ public class ConsoleIO {
     return promptTrimmed(message).toUpperCase();
   }
 
+  public static String promptCourseIdOrBack(String message) {
+    System.out.print(message);
+    System.out.flush();
+
+    StringBuilder input = new StringBuilder();
+    boolean rawMode = enableRawMode();
+    if (!rawMode) {
+      return readLine().trim().toUpperCase();
+    }
+
+    try {
+      while (true) {
+        int ch = System.in.read();
+        if (ch == -1 || ch == '\n' || ch == '\r') {
+          System.out.println();
+          return input.toString().trim().toUpperCase();
+        }
+
+        if (input.isEmpty() && (ch == 'b' || ch == 'B')) {
+          System.out.println((char) ch);
+          return "B";
+        }
+
+        if (ch == 127 || ch == 8) {
+          if (!input.isEmpty()) {
+            input.deleteCharAt(input.length() - 1);
+            System.out.print("\b \b");
+            System.out.flush();
+          }
+          continue;
+        }
+
+        input.append((char) ch);
+        System.out.print((char) ch);
+        System.out.flush();
+      }
+    } catch (java.io.IOException e) {
+      return input.toString().trim().toUpperCase();
+    } finally {
+      disableRawMode();
+    }
+  }
+
   public static void pause() {
     System.out.print("\nPress Enter to continue...");
     readLine();
@@ -59,5 +102,25 @@ public class ConsoleIO {
 
   public static String safeText(String text) {
     return text == null ? "" : text;
+  }
+
+  private static boolean enableRawMode() {
+    return runStty("raw -echo");
+  }
+
+  private static void disableRawMode() {
+    runStty("sane");
+  }
+
+  private static boolean runStty(String args) {
+    try {
+      Process process = new ProcessBuilder("sh", "-c", "stty " + args + " < /dev/tty").start();
+      return process.waitFor() == 0;
+    } catch (java.io.IOException e) {
+      return false;
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      return false;
+    }
   }
 }
