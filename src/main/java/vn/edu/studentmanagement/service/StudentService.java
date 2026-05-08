@@ -73,17 +73,17 @@ public class StudentService {
   }
 
   private void validateStudentData(String id, String name, String gender) {
-    validateId(id);
-    validateName(name);
+    validateStudentId(id);
+    validateStudentName(name);
     validateGender(gender);
   }
 
-  private void validateId(String id) {
+  public void validateStudentId(String id) {
     if (id == null || id.trim().isEmpty()) {
       throw new IllegalArgumentException("ID is required.");
     }
 
-    String cleanId = id.trim().toUpperCase();
+    String cleanId = normalizeStudentId(id);
     if (cleanId.length() != 11) {
       throw new IllegalArgumentException("ID must be exactly 11 characters.");
     }
@@ -113,7 +113,7 @@ public class StudentService {
     }
   }
 
-  private void validateName(String name) {
+  public void validateStudentName(String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Student name is required.");
     }
@@ -146,7 +146,7 @@ public class StudentService {
     // 1. Validate the data first
     validateStudentData(id, name, gender);
 
-    String cleanId = id.trim().toUpperCase();
+    String cleanId = normalizeStudentId(id);
     String cleanName = name.trim();
     String cleanGender = normalizeGender(gender);
     Major major = extractMajorFromId(cleanId);
@@ -169,15 +169,13 @@ public class StudentService {
 
   // FIXED: Changed stt to id to match your Student model
   public Student deleteStudentById(String idToDelete) {
-    if (idToDelete == null || idToDelete.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
+    validateStudentId(idToDelete);
 
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
-    String cleanId = idToDelete.trim();
+    String cleanId = normalizeStudentId(idToDelete);
     Student deletedStudent = studentsById.remove(cleanId);
 
     if (deletedStudent != null) {
@@ -190,10 +188,12 @@ public class StudentService {
   }
 
   public Student findById(String id) {
-    if (id == null || id.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
-    return studentsById.get(id.trim());
+    validateStudentId(id);
+    return studentsById.get(normalizeStudentId(id));
+  }
+
+  public String normalizeStudentId(String id) {
+    return id.trim().toUpperCase();
   }
 
   public void flushPendingChanges() {
@@ -206,7 +206,7 @@ public class StudentService {
     try {
       for (Student student : studentRepository.readAll()) {
         if (student.getId() != null && !student.getId().isBlank()) {
-          studentsById.put(student.getId().trim(), student);
+          studentsById.put(normalizeStudentId(student.getId()), student);
         }
       }
     } catch (StorageException e) {

@@ -65,9 +65,18 @@ public class StudentMenu {
       if (choice.equals("1")) {
         viewStudentsPaginated(students, emptyMessage);
       } else if (choice.equals("2")) {
-        String keyword = ConsoleIO.prompt("Enter name keyword: ").toLowerCase();
+        String keyword = ConsoleIO.prompt("Enter name keyword: ");
+        try {
+          studentService.validateStudentName(keyword);
+        } catch (IllegalArgumentException e) {
+          ConsoleIO.printError(e);
+          ConsoleIO.pause();
+          continue;
+        }
+
+        String lowerKeyword = keyword.toLowerCase();
         students = students.stream()
-            .filter(s -> s.getFullName().toLowerCase().contains(keyword))
+            .filter(s -> s.getFullName().toLowerCase().contains(lowerKeyword))
             .toList();
         emptyMessage = "No students matched your search.";
         viewStudentsPaginated(students, emptyMessage);
