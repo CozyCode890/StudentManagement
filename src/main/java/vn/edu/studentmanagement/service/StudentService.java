@@ -40,6 +40,10 @@ public class StudentService {
     return new ArrayList<>(getStudents());
   }
 
+  public List<Student> findAll() {
+    return displayAll();
+  }
+
   public List<Student> displayAllSortedById() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getId))
@@ -59,6 +63,15 @@ public class StudentService {
             (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
             (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
             (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
+        .collect(Collectors.toList());
+  }
+
+  public List<Student> findByName(String keyword) {
+    validateStudentName(keyword);
+    String lowerKeyword = keyword.toLowerCase().trim();
+
+    return getStudents().stream()
+        .filter(student -> student.getFullName().toLowerCase().contains(lowerKeyword))
         .collect(Collectors.toList());
   }
 
@@ -185,6 +198,10 @@ public class StudentService {
   public Student findById(String id) {
     validateStudentId(id);
     return studentsById.get(normalizeStudentId(id));
+  }
+
+  public Student filterById(String id) {
+    return findById(id);
   }
 
   public String normalizeStudentId(String id) {

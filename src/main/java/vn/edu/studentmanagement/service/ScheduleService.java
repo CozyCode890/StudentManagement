@@ -178,6 +178,14 @@ public class ScheduleService {
     return schedule;
   }
 
+  public Schedule filterScheduleByStudentId(String studentId) {
+    return getSchedule(studentId);
+  }
+
+  public List<Course> getScheduleSortedByDayThenStart(String studentId) {
+    return filterScheduleByStudentIdSortedByDayThenStart(studentId);
+  }
+
   public List<Course> filterScheduleByStudentIdSortedByDayThenStart(String studentId) {
     List<Course> courses = new ArrayList<>(filterScheduleByStudentId(studentId).getSelectedCourses());
     courses.sort(
