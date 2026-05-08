@@ -1,12 +1,6 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.menu;
 
-import java.nio.file.Path;
-
-import vn.edu.studentmanagement.storage.CsvStudentRepository;
-
-public class MainMenu {
-  private static final Path CSV_PATH = CsvStudentRepository.CSV_PATH;
-
+public class MainMenuView {
   public static void printMenu() {
     System.out.println("==================================");
     System.out.println(" Student Management System");

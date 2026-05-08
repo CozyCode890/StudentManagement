@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.console;
 
 public class TerminalController {
   public static void clearScreen() {

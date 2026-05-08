@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.renderer;
 
 public class TableFormatter {
   public static String buildSeparator(int... widths) {

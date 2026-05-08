@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.console;
 
 import java.util.List;
 

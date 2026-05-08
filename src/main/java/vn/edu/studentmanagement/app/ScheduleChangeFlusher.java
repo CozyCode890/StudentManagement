@@ -1,8 +1,10 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.app;
 
 import java.util.Objects;
 
 import vn.edu.studentmanagement.service.ScheduleService;
+import vn.edu.studentmanagement.ui.console.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.ui.console.ConsolePause;
 
 class ScheduleChangeFlusher {
   private final ScheduleService scheduleService;

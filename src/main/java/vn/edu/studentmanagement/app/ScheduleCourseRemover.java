@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.app;
 
 import java.util.List;
 import java.util.Objects;
@@ -6,6 +6,9 @@ import java.util.Objects;
 import vn.edu.studentmanagement.model.Course;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.service.ScheduleService;
+import vn.edu.studentmanagement.ui.console.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.ui.console.ConsolePrompt;
+import vn.edu.studentmanagement.ui.renderer.CourseTableRenderer;
 
 class ScheduleCourseRemover {
   private final ScheduleService scheduleService;

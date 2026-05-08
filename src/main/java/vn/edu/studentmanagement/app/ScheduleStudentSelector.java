@@ -1,9 +1,11 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.app;
 
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.service.StudentService;
+import vn.edu.studentmanagement.ui.console.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.ui.console.ConsolePrompt;
 
 class ScheduleStudentSelector {
   private final StudentService studentService;

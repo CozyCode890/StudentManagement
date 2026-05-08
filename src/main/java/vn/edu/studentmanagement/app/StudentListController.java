@@ -1,17 +1,26 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.app;
 
 import java.util.List;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.service.StudentService;
+import vn.edu.studentmanagement.ui.console.ConsoleIO;
+import vn.edu.studentmanagement.ui.console.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.ui.console.ConsolePaginator;
+import vn.edu.studentmanagement.ui.console.ConsolePause;
+import vn.edu.studentmanagement.ui.console.ConsolePrompt;
+import vn.edu.studentmanagement.ui.console.TerminalController;
+import vn.edu.studentmanagement.ui.menu.StudentMenuView;
+import vn.edu.studentmanagement.ui.renderer.StudentTableRenderer;
 
-public class StudentListView {
+public class StudentListController {
   private static final int ROWS_PER_PAGE = 10;
 
   private final StudentService studentService;
+  private final StudentMenuView menuView = new StudentMenuView();
 
-  public StudentListView(StudentService studentService) {
+  public StudentListController(StudentService studentService) {
     this.studentService = Objects.requireNonNull(studentService);
   }
 
@@ -19,10 +28,7 @@ public class StudentListView {
     while (true) {
       TerminalController.clearScreen();
 
-      System.out.println("\n--- VIEW OPTIONS ---");
-      System.out.println("1) Show All Students");
-      System.out.println("2) Search by Name");
-      System.out.println("0) Return");
+      menuView.printViewOptions();
 
       String choice = ConsolePrompt.trimmed("Choice: ");
       if (choice.equals("0")) {
@@ -55,10 +61,7 @@ public class StudentListView {
       return;
     }
 
-    String lowerKeyword = keyword.toLowerCase();
-    List<Student> students = studentService.findAll().stream()
-        .filter(student -> student.getFullName().toLowerCase().contains(lowerKeyword))
-        .toList();
+    List<Student> students = studentService.findByName(keyword);
     showPaginated(students, "No students matched your search.");
   }
 

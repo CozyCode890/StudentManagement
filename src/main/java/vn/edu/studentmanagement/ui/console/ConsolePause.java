@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.console;
 
 public class ConsolePause {
   public static void waitForEnter() {

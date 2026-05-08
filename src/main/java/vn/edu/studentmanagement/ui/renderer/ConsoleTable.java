@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.renderer;
 
 import java.util.ArrayList;
 import java.util.List;

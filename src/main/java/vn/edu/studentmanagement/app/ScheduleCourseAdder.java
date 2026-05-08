@@ -1,22 +1,30 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.app;
 
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.service.ScheduleService;
+import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.ui.console.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.ui.console.ConsolePause;
+import vn.edu.studentmanagement.ui.console.ConsolePrompt;
+import vn.edu.studentmanagement.ui.view.ScheduleView;
 
 class ScheduleCourseAdder {
   private final ScheduleService scheduleService;
+  private final CourseCatalog courseCatalog;
   private final ScheduleStudentSelector studentSelector;
-  private final ScheduleCourseCatalogView catalogView;
+  private final ScheduleView scheduleView;
 
   ScheduleCourseAdder(
       ScheduleService scheduleService,
+      CourseCatalog courseCatalog,
       ScheduleStudentSelector studentSelector,
-      ScheduleCourseCatalogView catalogView) {
+      ScheduleView scheduleView) {
     this.scheduleService = Objects.requireNonNull(scheduleService);
+    this.courseCatalog = Objects.requireNonNull(courseCatalog);
     this.studentSelector = Objects.requireNonNull(studentSelector);
-    this.catalogView = Objects.requireNonNull(catalogView);
+    this.scheduleView = Objects.requireNonNull(scheduleView);
   }
 
   void show() {
@@ -27,7 +35,10 @@ class ScheduleCourseAdder {
     }
 
     try {
-      catalogView.showAvailableCoursesFor(student);
+      scheduleView.printAvailableCourses(
+          student,
+          courseCatalog.getGeneralCourses(),
+          courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
       addCoursesUntilBack(student);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);

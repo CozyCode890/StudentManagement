@@ -1,4 +1,4 @@
-package vn.edu.studentmanagement.ui;
+package vn.edu.studentmanagement.ui.console;
 
 public class ConsolePrompt {
   public static String trimmed(String message) {

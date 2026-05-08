@@ -45,6 +45,15 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
+  public List<Student> findByName(String keyword) {
+    validateStudentName(keyword);
+    String lowerKeyword = keyword.toLowerCase().trim();
+
+    return getStudents().stream()
+        .filter(student -> student.getFullName().toLowerCase().contains(lowerKeyword))
+        .collect(Collectors.toList());
+  }
+
   public List<Student> findAllSortedByLastName() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
