@@ -33,7 +33,7 @@
         <artifactId>exec-maven-plugin</artifactId>
         <version>3.3.0</version>
         <configuration>
-          <mainClass>vn.edu.studentmanagement.App</mainClass>
+          <mainClass>vn.edu.studentmanagement.bootstrap.App</mainClass>
         </configuration>
       </plugin>
     </plugins>
