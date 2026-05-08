@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Course;
-import vn.edu.studentmanagement.model.CourseDefinition;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.storage.CourseCatalog;
 import vn.edu.studentmanagement.service.ScheduleService;
@@ -71,7 +70,7 @@ public class ScheduleMenu {
       if (courses.isEmpty()) {
         ConsoleMessagePrinter.warning("No courses registered yet");
       } else {
-        renderCourseTable(courses);
+        CourseTableRenderer.renderCourses(courses);
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
@@ -89,9 +88,9 @@ public class ScheduleMenu {
     try {
       System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
       System.out.println("\nGeneral courses:");
-      renderDefinitionTable(courseCatalog.getGeneralCourses());
+      CourseTableRenderer.renderDefinitions(courseCatalog.getGeneralCourses());
       System.out.println("\nMajor courses:");
-      renderDefinitionTable(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
+      CourseTableRenderer.renderDefinitions(courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
 
       while (true) {
         String courseId = ConsolePrompt.courseIdOrBack("\nEnter Course ID to add (B to back): ");
@@ -125,7 +124,7 @@ public class ScheduleMenu {
         return;
       }
 
-      renderCourseTable(currentCourses);
+      CourseTableRenderer.renderCourses(currentCourses);
       String courseId = ConsolePrompt.upperTrimmed("\nEnter Course ID to remove: ");
 
       boolean removed = scheduleService.removeCourse(student.getId(), courseId);
@@ -166,32 +165,4 @@ public class ScheduleMenu {
     }
   }
 
-  private static void renderCourseTable(List<Course> courses) {
-    String format = "| %-8s | %-20s | %-10s | %-15s |%n";
-    String line = TableFormatter.buildSeparator(8, 20, 10, 15);
-    System.out.println(line);
-    System.out.printf(format, "ID", "Course Name", "Day", "Time");
-    System.out.println(line);
-    for (Course c : courses) {
-      String timeStr = c.getTimeSlot().getStart() + "-" + c.getTimeSlot().getEnd();
-      System.out.printf(format,
-          c.getCourseId(),
-          c.getName(),
-          c.getTimeSlot().getDay(),
-          timeStr);
-    }
-    System.out.println(line);
-  }
-
-  private static void renderDefinitionTable(List<CourseDefinition> defs) {
-    String format = "| %-8s | %-25s | %-10s |%n";
-    String line = TableFormatter.buildSeparator(8, 25, 10);
-    System.out.println(line);
-    System.out.printf(format, "ID", "Course Name", "Type");
-    System.out.println(line);
-    for (CourseDefinition d : defs) {
-      System.out.printf(format, d.getCourseId(), d.getName(), d.getType());
-    }
-    System.out.println(line);
-  }
 }
