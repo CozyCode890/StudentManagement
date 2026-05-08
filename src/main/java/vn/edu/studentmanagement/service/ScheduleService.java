@@ -60,9 +60,7 @@ public class ScheduleService {
     loadSchedules();
   }
 
-  /**
-   * overlap if (same day) && startA < endB && startB < endA
-   */
+
   public boolean overlap(TimeSlot a, TimeSlot b) {
     if (a == null || b == null)
       return false;
@@ -71,7 +69,6 @@ public class ScheduleService {
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
-  // Change the method signature to accept courseId as a String
   public AddCourseResult addCourse(String studentId, String courseId) {
     try {
       studentService.validateStudentId(studentId);
@@ -82,7 +79,7 @@ public class ScheduleService {
       String sid = studentService.normalizeStudentId(studentId);
       String cid = normalizeCourseId(courseId);
 
-      Student student = studentService.findById(sid);
+      Student student = studentService.filterById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
@@ -101,7 +98,6 @@ public class ScheduleService {
 
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
 
-      // Prevent duplicate courseId within one schedule.
       for (Course selected : schedule.getSelectedCourses()) {
         if (selected.getCourseId().equals(cid)) {
           throw new IllegalArgumentException("Course already added");
@@ -112,7 +108,6 @@ public class ScheduleService {
         throw new IllegalArgumentException("Max 3 courses");
       }
 
-      // Conflict checking against all selected courses
       for (Course selected : schedule.getSelectedCourses()) {
         if (overlap(selected.getTimeSlot(), proposedTime)) {
           throw new IllegalArgumentException("Conflict time");
@@ -178,14 +173,13 @@ public class ScheduleService {
     String sid = studentService.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
-      // Always return a schedule object for consistent UI.
       schedule = new Schedule(sid);
     }
     return schedule;
   }
 
-  public List<Course> getScheduleSortedByDayThenStart(String studentId) {
-    List<Course> courses = new ArrayList<>(getSchedule(studentId).getSelectedCourses());
+  public List<Course> filterScheduleByStudentIdSortedByDayThenStart(String studentId) {
+    List<Course> courses = new ArrayList<>(filterScheduleByStudentId(studentId).getSelectedCourses());
     courses.sort(
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));

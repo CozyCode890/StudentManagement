@@ -53,7 +53,6 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
           continue;
         }
 
-        // CSV format: studentId,courseId
         String[] parts = line.split(",");
         if (parts.length < 2) {
           continue;

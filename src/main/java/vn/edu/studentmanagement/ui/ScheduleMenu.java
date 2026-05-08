@@ -65,7 +65,7 @@ public class ScheduleMenu {
       return;
 
     try {
-      List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
+      List<Course> courses = scheduleService.filterScheduleByStudentIdSortedByDayThenStart(student.getId());
 
       System.out.println("\n>>> SCHEDULE FOR: " + student.getFullName().toUpperCase() + " (ID: " + student.getId() + ")");
       if (courses.isEmpty()) {
@@ -85,7 +85,6 @@ public class ScheduleMenu {
       return;
     }
 
-    // 1. Hiển thị danh sách môn học có sẵn cho SV này
     try {
       System.out.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
       System.out.println("\nGeneral courses:");
@@ -119,7 +118,7 @@ public class ScheduleMenu {
       return;
 
     try {
-      List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
+      List<Course> currentCourses = scheduleService.filterScheduleByStudentId(student.getId()).getSelectedCourses();
       if (currentCourses.isEmpty()) {
         ConsoleIO.printWarning("This student has no courses to remove.");
         return;
@@ -139,12 +138,11 @@ public class ScheduleMenu {
     }
   }
 
-  // --- HELPER METHODS ---
 
   private static Student askForStudent() {
     String sid = ConsoleIO.promptTrimmed("Enter student ID: ");
     try {
-      Student s = studentService.findById(sid);
+      Student s = studentService.filterById(sid);
       if (s == null) {
         ConsoleIO.printWarning("Student not found with ID: " + sid);
       }

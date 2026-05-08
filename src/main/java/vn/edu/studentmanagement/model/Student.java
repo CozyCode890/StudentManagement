@@ -57,9 +57,7 @@ public class Student {
     this.age = age;
   }
 
-  /**
-   * Last name is extracted from the last non-empty token of {@link #fullName}.
-   */
+
   public String getLastName() {
     if (fullName == null) {
       return null;

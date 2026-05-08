@@ -36,37 +36,33 @@ public class StudentService {
     return new ArrayList<>(studentsById.values());
   }
 
-  public List<Student> findAll() {
+  public List<Student> displayAll() {
     return new ArrayList<>(getStudents());
   }
 
-  public List<Student> findAllSortedById() {
+  public List<Student> displayAllSortedById() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getId))
         .collect(Collectors.toList());
   }
 
-  public List<Student> searchStudents(String query) {
+  public List<Student> filterStudents(String query) {
     if (query == null || query.trim().isEmpty()) {
-      return findAll();
+      return displayAll();
     }
 
     String lowerQuery = query.toLowerCase().trim();
 
     return getStudents().stream()
         .filter(student ->
-        // Matches ID
         String.valueOf(student.getId()).contains(lowerQuery) ||
-        // Matches Full Name (Searching by Last Name)
             (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
-            // Matches Gender
             (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
-            // Matches Major
             (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
         .collect(Collectors.toList());
   }
 
-  public List<Student> findAllSortedByLastName() {
+  public List<Student> displayAllSortedByLastName() {
     return getStudents().stream()
         .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
         .collect(Collectors.toList());
@@ -151,7 +147,7 @@ public class StudentService {
     String cleanGender = normalizeGender(gender);
     Major major = extractMajorFromId(cleanId);
 
-    if (findById(cleanId) != null) {
+    if (filterById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
 
@@ -167,7 +163,6 @@ public class StudentService {
     return s;
   }
 
-  // FIXED: Changed stt to id to match your Student model
   public Student deleteStudentById(String idToDelete) {
     validateStudentId(idToDelete);
 
