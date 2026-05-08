@@ -71,14 +71,12 @@ public class ScheduleService {
 
   public AddCourseResult addCourse(String studentId, String courseId) {
     try {
-      if (studentId == null || studentId.isBlank()) {
-        throw new IllegalArgumentException("ID cannot be empty.");
-      }
+      studentService.validateStudentId(studentId);
       if (courseId == null || courseId.isBlank()) {
         throw new IllegalArgumentException("Course ID cannot be empty.");
       }
 
-      String sid = studentId.trim();
+      String sid = studentService.normalizeStudentId(studentId);
       String cid = normalizeCourseId(courseId);
 
       Student student = studentService.filterById(sid);
@@ -131,13 +129,11 @@ public class ScheduleService {
   }
 
   public boolean removeCourse(String studentId, String courseId) {
-    if (studentId == null || studentId.isBlank()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
+    studentService.validateStudentId(studentId);
     if (courseId == null || courseId.isBlank()) {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
-    String sid = studentId.trim();
+    String sid = studentService.normalizeStudentId(studentId);
     String cid = normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
@@ -155,11 +151,9 @@ public class ScheduleService {
   }
 
   public boolean removeScheduleByStudentId(String studentId) {
-    if (studentId == null || studentId.isBlank()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
+    studentService.validateStudentId(studentId);
 
-    Schedule removedSchedule = schedulesByStudentId.remove(studentId.trim());
+    Schedule removedSchedule = schedulesByStudentId.remove(studentService.normalizeStudentId(studentId));
     if (removedSchedule == null) {
       return false;
     }
@@ -174,11 +168,9 @@ public class ScheduleService {
     }
   }
 
-  public Schedule filterScheduleByStudentId(String studentId) {
-    if (studentId == null || studentId.isBlank()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
-    String sid = studentId.trim();
+  public Schedule getSchedule(String studentId) {
+    studentService.validateStudentId(studentId);
+    String sid = studentService.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
       schedule = new Schedule(sid);
@@ -206,7 +198,7 @@ public class ScheduleService {
     try {
       for (Schedule schedule : scheduleRepository.readAll()) {
         if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
-          schedulesByStudentId.put(schedule.getStudentId().trim(), schedule);
+          schedulesByStudentId.put(studentService.normalizeStudentId(schedule.getStudentId()), schedule);
         }
       }
     } catch (StorageException e) {

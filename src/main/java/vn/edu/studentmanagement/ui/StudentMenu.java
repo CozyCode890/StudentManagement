@@ -65,9 +65,18 @@ public class StudentMenu {
       if (choice.equals("1")) {
         viewStudentsPaginated(students, emptyMessage);
       } else if (choice.equals("2")) {
-        String keyword = ConsoleIO.prompt("Enter name keyword: ").toLowerCase();
+        String keyword = ConsoleIO.prompt("Enter name keyword: ");
+        try {
+          studentService.validateStudentName(keyword);
+        } catch (IllegalArgumentException e) {
+          ConsoleIO.printError(e);
+          ConsoleIO.pause();
+          continue;
+        }
+
+        String lowerKeyword = keyword.toLowerCase();
         students = students.stream()
-            .filter(s -> s.getFullName().toLowerCase().contains(keyword))
+            .filter(s -> s.getFullName().toLowerCase().contains(lowerKeyword))
             .toList();
         emptyMessage = "No students matched your search.";
         viewStudentsPaginated(students, emptyMessage);
@@ -168,11 +177,10 @@ public class StudentMenu {
   public static void addStudent() {
     String id = ConsoleIO.prompt("\nEnter ID: ");
     String name = ConsoleIO.prompt("\nEnter name: ");
-    String major = ConsoleIO.prompt("Enter major: ");
     String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
 
     try {
-      Student student = studentService.addStudent(id, name, major, gender);
+      Student student = studentService.addStudent(id, name, gender);
       System.out.println("Successfully added ID: " + student.getId());
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleIO.printError(e);

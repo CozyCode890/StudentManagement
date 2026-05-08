@@ -17,6 +17,7 @@ import vn.edu.studentmanagement.storage.StorageException;
 
 public class StudentService {
   private static final int SAVE_BATCH_SIZE = 5;
+  private static final String NAME_PATTERN = "\\p{L}+(?:\\s+\\p{L}+)*";
 
   private final CsvRepository<Student> studentRepository;
   private final Map<String, Student> studentsById = new LinkedHashMap<>();
@@ -67,19 +68,58 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  private void validateStudentData(String id, String name, String major, String gender) {
+  private void validateStudentData(String id, String name, String gender) {
+    validateStudentId(id);
+    validateStudentName(name);
+    validateGender(gender);
+  }
+
+  public void validateStudentId(String id) {
     if (id == null || id.trim().isEmpty()) {
       throw new IllegalArgumentException("ID is required.");
     }
-    if (id.contains(",")) {
-      throw new IllegalArgumentException("ID cannot contain commas.");
+
+    String cleanId = normalizeStudentId(id);
+    if (cleanId.length() != 11) {
+      throw new IllegalArgumentException("ID must be exactly 11 characters.");
     }
+
+    if (!cleanId.startsWith("IT")) {
+      throw new IllegalArgumentException("ID must start with IT.");
+    }
+
+    String majorCode = cleanId.substring(2, 4);
+    if (!majorCode.equals("IT") && !majorCode.equals("DS") && !majorCode.equals("CS")) {
+      throw new IllegalArgumentException("ID major code must be IT, DS, or CS.");
+    }
+
+    String programCode = cleanId.substring(4, 6);
+    if (!programCode.equals("IU") && !programCode.equals("WE")) {
+      throw new IllegalArgumentException("ID program code must be IU or WE.");
+    }
+
+    int yearCode = parseNumber(cleanId.substring(6, 8), "ID year code must be a number from 21 to 25.");
+    if (yearCode < 21 || yearCode > 25) {
+      throw new IllegalArgumentException("ID year code must be a number from 21 to 25.");
+    }
+
+    int sequenceNumber = parseNumber(cleanId.substring(8, 11), "ID sequence number must be from 001 to 199.");
+    if (sequenceNumber < 1 || sequenceNumber > 199) {
+      throw new IllegalArgumentException("ID sequence number must be from 001 to 199.");
+    }
+  }
+
+  public void validateStudentName(String name) {
     if (name == null || name.trim().isEmpty()) {
       throw new IllegalArgumentException("Student name is required.");
     }
-    if (major == null || major.trim().isEmpty()) {
-      throw new IllegalArgumentException("Major is required.");
+
+    if (!name.trim().matches(NAME_PATTERN)) {
+      throw new IllegalArgumentException("Student name can only contain letters and spaces.");
     }
+  }
+
+  private void validateGender(String gender) {
     if (gender == null || gender.trim().isEmpty()) {
       throw new IllegalArgumentException("Gender is required.");
     }
@@ -88,20 +128,24 @@ public class StudentService {
     if (g == null) {
       throw new IllegalArgumentException("Gender must be 'Male', 'Female', 'M', or 'F'.");
     }
+  }
 
-    String m = major.trim().toUpperCase();
-    if (!m.equals("IT") && !m.equals("CS") && !m.equals("DS")) {
-      throw new IllegalArgumentException("Major must be 'IT', 'CS', or 'DS'.");
+  private int parseNumber(String value, String errorMessage) {
+    try {
+      return Integer.parseInt(value);
+    } catch (NumberFormatException e) {
+      throw new IllegalArgumentException(errorMessage);
     }
   }
 
-  public Student addStudent(String id, String name, String major, String gender) {
-    validateStudentData(id, name, major, gender);
+  public Student addStudent(String id, String name, String gender) {
+    // 1. Validate the data first
+    validateStudentData(id, name, gender);
 
-    String cleanId = id.trim();
-    String cleanName = name.trim().replace(",", " ");
-    String cleanMajor = major.trim().replace(",", " ");
+    String cleanId = normalizeStudentId(id);
+    String cleanName = normalizeStudentName(name);
     String cleanGender = normalizeGender(gender);
+    Major major = extractMajorFromId(cleanId);
 
     if (filterById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
@@ -110,7 +154,7 @@ public class StudentService {
     Student s = new Student(
         cleanId,
         cleanName,
-        Major.valueOf(cleanMajor.toUpperCase()),
+        major,
         Gender.valueOf(cleanGender),
         0);
     studentsById.put(cleanId, s);
@@ -120,15 +164,13 @@ public class StudentService {
   }
 
   public Student deleteStudentById(String idToDelete) {
-    if (idToDelete == null || idToDelete.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
+    validateStudentId(idToDelete);
 
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
-    String cleanId = idToDelete.trim();
+    String cleanId = normalizeStudentId(idToDelete);
     Student deletedStudent = studentsById.remove(cleanId);
 
     if (deletedStudent != null) {
@@ -140,11 +182,22 @@ public class StudentService {
     }
   }
 
-  public Student filterById(String id) {
-    if (id == null || id.trim().isEmpty()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
+  public Student findById(String id) {
+    validateStudentId(id);
+    return studentsById.get(normalizeStudentId(id));
+  }
+
+  public String normalizeStudentId(String id) {
+    return id.trim().toUpperCase();
+  }
+
+  public String normalizeStudentName(String name) {
+    String[] words = name.trim().toLowerCase().split("\\s+");
+    List<String> normalizedWords = new ArrayList<>();
+    for (String word : words) {
+      normalizedWords.add(word.substring(0, 1).toUpperCase() + word.substring(1));
     }
-    return studentsById.get(id.trim());
+    return String.join(" ", normalizedWords);
   }
 
   public void flushPendingChanges() {
@@ -157,7 +210,7 @@ public class StudentService {
     try {
       for (Student student : studentRepository.readAll()) {
         if (student.getId() != null && !student.getId().isBlank()) {
-          studentsById.put(student.getId().trim(), student);
+          studentsById.put(normalizeStudentId(student.getId()), student);
         }
       }
     } catch (StorageException e) {
@@ -193,5 +246,9 @@ public class StudentService {
       case "f", "female" -> "FEMALE";
       default -> null;
     };
+  }
+
+  private Major extractMajorFromId(String id) {
+    return Major.valueOf(id.substring(2, 4));
   }
 }
