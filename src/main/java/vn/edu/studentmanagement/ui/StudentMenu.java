@@ -169,11 +169,10 @@ public class StudentMenu {
   public static void addStudent() {
     String id = ConsoleIO.prompt("\nEnter ID: ");
     String name = ConsoleIO.prompt("\nEnter name: ");
-    String major = ConsoleIO.prompt("Enter major: ");
     String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
 
     try {
-      Student student = studentService.addStudent(id, name, major, gender);
+      Student student = studentService.addStudent(id, name, gender);
       System.out.println("Successfully added ID: " + student.getId());
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleIO.printError(e);
