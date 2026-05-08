@@ -4,23 +4,29 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Course;
 import vn.edu.studentmanagement.model.CourseDefinition;
-import vn.edu.studentmanagement.model.Major;
 import vn.edu.studentmanagement.model.Schedule;
 import vn.edu.studentmanagement.model.Student;
 import vn.edu.studentmanagement.model.TimeSlot;
-import vn.edu.studentmanagement.model.CourseType;
+import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.storage.CsvRepository;
+import vn.edu.studentmanagement.storage.CsvScheduleRepository;
+import vn.edu.studentmanagement.storage.StorageException;
 
 public class ScheduleService {
+  private static final int SAVE_BATCH_SIZE = 5;
+
   private final StudentService studentService;
   private final CourseCatalog courseCatalog;
+  private final CsvRepository<Schedule> scheduleRepository;
 
-  // In-memory schedule store (can be persisted later).
   private final Map<String, Schedule> schedulesByStudentId = new HashMap<>();
+  private int pendingScheduleChanges;
 
   public static class AddCourseResult {
     private final boolean success;
@@ -41,13 +47,20 @@ public class ScheduleService {
   }
 
   public ScheduleService(StudentService studentService, CourseCatalog courseCatalog) {
-    this.studentService = Objects.requireNonNull(studentService);
-    this.courseCatalog = Objects.requireNonNull(courseCatalog);
+    this(studentService, courseCatalog, new CsvScheduleRepository(courseCatalog));
   }
 
-  /**
-   * overlap if (same day) && startA < endB && startB < endA
-   */
+  public ScheduleService(
+      StudentService studentService,
+      CourseCatalog courseCatalog,
+      CsvRepository<Schedule> scheduleRepository) {
+    this.studentService = Objects.requireNonNull(studentService);
+    this.courseCatalog = Objects.requireNonNull(courseCatalog);
+    this.scheduleRepository = Objects.requireNonNull(scheduleRepository);
+    loadSchedules();
+  }
+
+
   public boolean overlap(TimeSlot a, TimeSlot b) {
     if (a == null || b == null)
       return false;
@@ -56,48 +69,35 @@ public class ScheduleService {
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
-  // Change the method signature to accept courseId as a String
   public AddCourseResult addCourse(String studentId, String courseId) {
     try {
-      if (studentId == null || studentId.isBlank()) {
-        throw new IllegalArgumentException("ID cannot be empty.");
-      }
+      studentService.validateStudentId(studentId);
       if (courseId == null || courseId.isBlank()) {
         throw new IllegalArgumentException("Course ID cannot be empty.");
       }
 
-      String sid = studentId.trim();
-      String cid = courseId.trim();
+      String sid = studentService.normalizeStudentId(studentId);
+      String cid = normalizeCourseId(courseId);
 
-      Student student = studentService.findById(sid);
+      Student student = studentService.filterById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
 
-      // Look up the course definition using the provided courseId
       CourseDefinition def = courseCatalog.findByCourseId(cid);
       if (def == null) {
         throw new IllegalArgumentException("Course not found");
       }
 
-      // IMPORTANT: I am assuming CourseDefinition now provides the TimeSlot.
-      // If your CourseDefinition model doesn't have getTimeSlot(),
-      // you will need to handle how the time is assigned here.
-      TimeSlot proposedTime = def.getTimeSlot();
-      if (proposedTime == null) {
-        throw new IllegalArgumentException("Course has no scheduled time slot.");
-      }
-
-      Major studentMajor = student.getMajor();
-
-      // Filter major courses by student major
-      if (def.getType() == CourseType.MAJOR && def.getMajor() != studentMajor) {
+      if (!courseCatalog.isEligibleForMajor(def, student.getMajor())) {
         throw new IllegalArgumentException("Course not allowed for student's major");
       }
 
+      Course selectedCourse = courseCatalog.createScheduledCourse(cid);
+      TimeSlot proposedTime = selectedCourse.getTimeSlot();
+
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
 
-      // Prevent duplicate courseId within one schedule.
       for (Course selected : schedule.getSelectedCourses()) {
         if (selected.getCourseId().equals(cid)) {
           throw new IllegalArgumentException("Course already added");
@@ -108,37 +108,33 @@ public class ScheduleService {
         throw new IllegalArgumentException("Max 3 courses");
       }
 
-      // Conflict checking against all selected courses
       for (Course selected : schedule.getSelectedCourses()) {
         if (overlap(selected.getTimeSlot(), proposedTime)) {
           throw new IllegalArgumentException("Conflict time");
         }
       }
 
-      // Create the Course instance to add to the schedule
-      Course selectedCourse = new Course(
-              def.getCourseId(),
-              def.getName(),
-              def.getType(),
-              def.getMajor(),
-              proposedTime);
+      if (!isValidTimeSlot(proposedTime)) {
+        throw new IllegalArgumentException("Course scheduled outside valid time slots");
+      }
 
       schedule.getSelectedCourses().add(selectedCourse);
+      markScheduleChanged();
       return new AddCourseResult(true, "Added successfully");
     } catch (IllegalArgumentException e) {
+      return new AddCourseResult(false, e.getMessage());
+    } catch (IllegalStateException e) {
       return new AddCourseResult(false, e.getMessage());
     }
   }
 
   public boolean removeCourse(String studentId, String courseId) {
-    if (studentId == null || studentId.isBlank()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
-    }
+    studentService.validateStudentId(studentId);
     if (courseId == null || courseId.isBlank()) {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
-    String sid = studentId.trim();
-    String cid = courseId.trim();
+    String sid = studentService.normalizeStudentId(studentId);
+    String cid = normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null)
@@ -148,27 +144,94 @@ public class ScheduleService {
     if (schedule.getSelectedCourses().isEmpty()) {
       schedulesByStudentId.remove(sid);
     }
+    if (removed) {
+      markScheduleChanged();
+    }
     return removed;
   }
 
-  public Schedule getSchedule(String studentId) {
-    if (studentId == null || studentId.isBlank()) {
-      throw new IllegalArgumentException("ID cannot be empty.");
+  public boolean removeScheduleByStudentId(String studentId) {
+    studentService.validateStudentId(studentId);
+
+    Schedule removedSchedule = schedulesByStudentId.remove(studentService.normalizeStudentId(studentId));
+    if (removedSchedule == null) {
+      return false;
     }
-    String sid = studentId.trim();
+
+    markScheduleChanged();
+    return true;
+  }
+
+  public void flushPendingChanges() {
+    if (pendingScheduleChanges > 0) {
+      saveSchedules();
+    }
+  }
+
+  public Schedule getSchedule(String studentId) {
+    studentService.validateStudentId(studentId);
+    String sid = studentService.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
-      // Always return a schedule object for consistent UI.
       schedule = new Schedule(sid);
     }
     return schedule;
   }
 
+  public Schedule filterScheduleByStudentId(String studentId) {
+    return getSchedule(studentId);
+  }
+
   public List<Course> getScheduleSortedByDayThenStart(String studentId) {
-    List<Course> courses = new ArrayList<>(getSchedule(studentId).getSelectedCourses());
+    return filterScheduleByStudentIdSortedByDayThenStart(studentId);
+  }
+
+  public List<Course> filterScheduleByStudentIdSortedByDayThenStart(String studentId) {
+    List<Course> courses = new ArrayList<>(filterScheduleByStudentId(studentId).getSelectedCourses());
     courses.sort(
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));
     return courses;
+  }
+
+  private String normalizeCourseId(String courseId) {
+    return courseId.trim().toUpperCase(Locale.ROOT);
+  }
+
+  private boolean isValidTimeSlot(TimeSlot timeSlot) {
+    return timeSlot != null && courseCatalog.getValidTimeSlots().contains(timeSlot);
+  }
+
+  private void loadSchedules() {
+    try {
+      for (Schedule schedule : scheduleRepository.readAll()) {
+        if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
+          schedulesByStudentId.put(studentService.normalizeStudentId(schedule.getStudentId()), schedule);
+        }
+      }
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to load schedules: " + getCauseMessage(e), e);
+    }
+  }
+
+  private void saveSchedules() {
+    try {
+      scheduleRepository.writeAll(new ArrayList<>(schedulesByStudentId.values()));
+      pendingScheduleChanges = 0;
+    } catch (StorageException e) {
+      throw new IllegalStateException("Unable to save schedules: " + getCauseMessage(e), e);
+    }
+  }
+
+  private void markScheduleChanged() {
+    pendingScheduleChanges++;
+    if (pendingScheduleChanges >= SAVE_BATCH_SIZE) {
+      saveSchedules();
+    }
+  }
+
+  private String getCauseMessage(StorageException e) {
+    Throwable cause = e.getCause();
+    return cause != null && cause.getMessage() != null ? cause.getMessage() : e.getMessage();
   }
 }
