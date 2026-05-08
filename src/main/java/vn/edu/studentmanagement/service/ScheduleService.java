@@ -22,6 +22,8 @@ public class ScheduleService {
   private static final int SAVE_BATCH_SIZE = 5;
 
   private final StudentService studentService;
+  private final StudentValidator studentValidator;
+  private final StudentNormalizer studentNormalizer;
   private final CourseCatalog courseCatalog;
   private final CsvRepository<Schedule> scheduleRepository;
 
@@ -54,12 +56,35 @@ public class ScheduleService {
       StudentService studentService,
       CourseCatalog courseCatalog,
       CsvRepository<Schedule> scheduleRepository) {
+    this(studentService, new StudentNormalizer(), courseCatalog, scheduleRepository);
+  }
+
+  private ScheduleService(
+      StudentService studentService,
+      StudentNormalizer studentNormalizer,
+      CourseCatalog courseCatalog,
+      CsvRepository<Schedule> scheduleRepository) {
+    this(
+        studentService,
+        new StudentValidator(studentNormalizer),
+        studentNormalizer,
+        courseCatalog,
+        scheduleRepository);
+  }
+
+  public ScheduleService(
+      StudentService studentService,
+      StudentValidator studentValidator,
+      StudentNormalizer studentNormalizer,
+      CourseCatalog courseCatalog,
+      CsvRepository<Schedule> scheduleRepository) {
     this.studentService = Objects.requireNonNull(studentService);
+    this.studentValidator = Objects.requireNonNull(studentValidator);
+    this.studentNormalizer = Objects.requireNonNull(studentNormalizer);
     this.courseCatalog = Objects.requireNonNull(courseCatalog);
     this.scheduleRepository = Objects.requireNonNull(scheduleRepository);
     loadSchedules();
   }
-
 
   public boolean overlap(TimeSlot a, TimeSlot b) {
     if (a == null || b == null)
@@ -71,12 +96,12 @@ public class ScheduleService {
 
   public AddCourseResult addCourse(String studentId, String courseId) {
     try {
-      studentService.validateStudentId(studentId);
+      studentValidator.validateExistingStudentId(studentId);
       if (courseId == null || courseId.isBlank()) {
         throw new IllegalArgumentException("Course ID cannot be empty.");
       }
 
-      String sid = studentService.normalizeStudentId(studentId);
+      String sid = studentNormalizer.normalizeStudentId(studentId);
       String cid = normalizeCourseId(courseId);
 
       Student student = studentService.filterById(sid);
@@ -129,11 +154,11 @@ public class ScheduleService {
   }
 
   public boolean removeCourse(String studentId, String courseId) {
-    studentService.validateStudentId(studentId);
+    studentValidator.validateExistingStudentId(studentId);
     if (courseId == null || courseId.isBlank()) {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
-    String sid = studentService.normalizeStudentId(studentId);
+    String sid = studentNormalizer.normalizeStudentId(studentId);
     String cid = normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
@@ -151,9 +176,9 @@ public class ScheduleService {
   }
 
   public boolean removeScheduleByStudentId(String studentId) {
-    studentService.validateStudentId(studentId);
+    studentValidator.validateExistingStudentId(studentId);
 
-    Schedule removedSchedule = schedulesByStudentId.remove(studentService.normalizeStudentId(studentId));
+    Schedule removedSchedule = schedulesByStudentId.remove(studentNormalizer.normalizeStudentId(studentId));
     if (removedSchedule == null) {
       return false;
     }
@@ -169,8 +194,8 @@ public class ScheduleService {
   }
 
   public Schedule getSchedule(String studentId) {
-    studentService.validateStudentId(studentId);
-    String sid = studentService.normalizeStudentId(studentId);
+    studentValidator.validateExistingStudentId(studentId);
+    String sid = studentNormalizer.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
       schedule = new Schedule(sid);
@@ -206,7 +231,7 @@ public class ScheduleService {
     try {
       for (Schedule schedule : scheduleRepository.readAll()) {
         if (schedule.getStudentId() != null && !schedule.getStudentId().isBlank()) {
-          schedulesByStudentId.put(studentService.normalizeStudentId(schedule.getStudentId()), schedule);
+          schedulesByStudentId.put(studentNormalizer.normalizeStudentId(schedule.getStudentId()), schedule);
         }
       }
     } catch (StorageException e) {
