@@ -1,84 +1,123 @@
 package vn.edu.studentmanagement.ui;
 
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Scanner;
+import java.util.Objects;
 
 import vn.edu.studentmanagement.model.Student;
+import vn.edu.studentmanagement.service.ScheduleService;
 import vn.edu.studentmanagement.service.StudentService;
 
 public class StudentMenu {
-  private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
-  private static final StudentService studentService = new StudentService();
+  private static StudentService studentService;
+  private static ScheduleService scheduleService;
 
-  public static void run() {
+  public static void run(StudentService sharedStudentService, ScheduleService sharedScheduleService) {
+    studentService = Objects.requireNonNull(sharedStudentService);
+    scheduleService = Objects.requireNonNull(sharedScheduleService);
     while (true) {
-      ConsoleIO.clearScreen();
+      TerminalController.clearScreen();
 
       System.out.println("\n=== STUDENT MANAGEMENT SYSTEM ===");
       System.out.println("1) View Student Menu (Search/List)");
       System.out.println("2) Add New Student");
       System.out.println("3) Delete Student (by ID)");
       System.out.println("0) Back to main menu");
-      System.out.print("Choose: ");
 
-      String choice = SC.nextLine().trim();
+      String choice = ConsolePrompt.trimmed("Choose: ");
       switch (choice) {
         case "1" -> viewStudentMenu();
-        case "2" -> addStudent();
-        case "3" -> deleteStudentById();
-        case "0" -> {
-          return;
+        case "2" -> {
+          addStudent();
+          ConsolePause.waitForEnter();
         }
-        default -> System.out.println("Invalid choice.");
+        case "3" -> {
+          deleteStudentById();
+          ConsolePause.waitForEnter();
+        }
+        case "0" -> {
+          if (flushPendingStudentChanges()) {
+            return;
+          }
+        }
+        default -> {
+          ConsoleMessagePrinter.warning("Invalid choice.");
+          ConsolePause.waitForEnter();
+        }
       }
     }
   }
 
   private static void viewStudentMenu() {
     while (true) {
-      ConsoleIO.clearScreen();
+      TerminalController.clearScreen();
 
       System.out.println("\n--- VIEW OPTIONS ---");
       System.out.println("1) Show All Students");
       System.out.println("2) Search by Name");
       System.out.println("0) Return");
-      System.out.print("Choice: ");
 
-      String choice = SC.nextLine().trim();
+      String choice = ConsolePrompt.trimmed("Choice: ");
       if (choice.equals("0"))
         break;
 
       List<Student> students = studentService.findAll();
-      if (choice.equals("2")) {
-        System.out.print("Enter name keyword: ");
-        String keyword = SC.nextLine().toLowerCase();
-        students = students.stream()
-            .filter(s -> s.getFullName().toLowerCase().contains(keyword))
-            .toList();
-      }
+      String emptyMessage = "Student list is empty.";
+      if (choice.equals("1")) {
+        viewStudentsPaginated(students, emptyMessage);
+      } else if (choice.equals("2")) {
+        String keyword = ConsoleIO.prompt("Enter name keyword: ");
+        try {
+          studentService.validateStudentName(keyword);
+        } catch (IllegalArgumentException e) {
+          ConsoleMessagePrinter.error(e);
+          ConsolePause.waitForEnter();
+          continue;
+        }
 
-      viewStudentsPaginated(students);
+        String lowerKeyword = keyword.toLowerCase();
+        students = students.stream()
+            .filter(s -> s.getFullName().toLowerCase().contains(lowerKeyword))
+            .toList();
+        emptyMessage = "No students matched your search.";
+        viewStudentsPaginated(students, emptyMessage);
+      } else {
+        TerminalController.clearScreen();
+        ConsoleMessagePrinter.warning("Invalid choice.");
+        ConsolePause.waitForEnter();
+      }
     }
   }
 
   public static void viewStudentsPaginated(List<Student> allStudents) {
+    viewStudentsPaginated(allStudents, "Student list is empty.");
+  }
+
+  private static void viewStudentsPaginated(List<Student> allStudents, String emptyMessage) {
     int ROWS_PER_PAGE = 10;
 
     if (allStudents.isEmpty()) {
-      System.out.println("\n(No students yet)\n");
+      System.out.println();
+      ConsoleMessagePrinter.warning(emptyMessage);
+      ConsolePause.waitForEnter();
       return;
     }
 
     int totalStudents = allStudents.size();
     int totalPages = (int) Math.ceil((double) totalStudents / ROWS_PER_PAGE);
     int currentPage = 0;
+    String feedback = null;
 
     while (true) {
+      TerminalController.clearScreen();
       int start = currentPage * ROWS_PER_PAGE;
       int end = Math.min(start + ROWS_PER_PAGE, totalStudents);
 
       List<Student> pageSlice = allStudents.subList(start, end);
+
+      if (feedback != null) {
+        ConsoleMessagePrinter.warning(feedback);
+        feedback = null;
+      }
 
       System.out.println("\n--- Viewing Page " + (currentPage + 1) + " of " + totalPages + " ---");
 
@@ -86,8 +125,7 @@ public class StudentMenu {
       renderTable(pageSlice, start + 1);
 
       System.out.println("\n[N] Next | [P] Previous | [B] Back");
-      System.out.print("Action: ");
-      String choice = SC.nextLine().trim().toUpperCase();
+      String choice = ConsolePrompt.upperTrimmed("Action: ");
 
       if (choice.equals("N") && currentPage < totalPages - 1) {
         currentPage++;
@@ -96,66 +134,84 @@ public class StudentMenu {
       } else if (choice.equals("B")) {
         break;
       } else {
-        System.out.println("[!] Invalid choice or no more pages.");
+        feedback = "Invalid choice or no more pages.";
       }
     }
   }
 
-  // 3. Update your renderTable to accept a starting STT
   private static void renderTable(List<Student> students, int startStt) {
-    String format = "| %-4s | %-6s | %-20s | %-10s | %-15s |%n";
-    String line = "+------+--------+----------------------+------------+-----------------+";
+    int sttWidth = Math.max(3, String.valueOf(startStt + students.size() - 1).length());
+    int idWidth = Math.max("ID".length(), maxLength(students, s -> s.getId()));
+    int nameWidth = Math.max("Full Name".length(), maxLength(students, s -> s.getFullName()));
+    int genderWidth = Math.max("Gender".length(), maxLength(students, s -> String.valueOf(s.getGender())));
+    int majorWidth = Math.max("Major".length(), maxLength(students, s -> String.valueOf(s.getMajor())));
+
+    String format = "| %-" + sttWidth + "s | %-" + idWidth + "s | %-" + nameWidth + "s | %-"
+        + genderWidth + "s | %-" + majorWidth + "s |%n";
+    String line = TableFormatter.buildSeparator(sttWidth, idWidth, nameWidth, genderWidth, majorWidth);
 
     System.out.println(line);
     System.out.printf(format, "STT", "ID", "Full Name", "Gender", "Major");
     System.out.println(line);
 
-    int currentStt = startStt; // Start from the passed value instead of 1
+    int currentStt = startStt;
     for (Student s : students) {
       System.out.printf(format,
           currentStt++,
-          s.getId(),
-          truncate(s.getFullName(), 20),
-          truncate(String.valueOf(s.getGender()), 10),
-          truncate(String.valueOf(s.getMajor()), 15));
+          TableFormatter.safeText(s.getId()),
+          TableFormatter.safeText(s.getFullName()),
+          TableFormatter.safeText(String.valueOf(s.getGender())),
+          TableFormatter.safeText(String.valueOf(s.getMajor())));
     }
     System.out.println(line);
   }
 
-  private static String truncate(String text, int length) {
-    if (text == null)
-      return "";
-    return text.length() <= length ? text : text.substring(0, length - 3) + "...";
+  private static int maxLength(List<Student> students, java.util.function.Function<Student, String> valueExtractor) {
+    return students.stream()
+        .map(valueExtractor)
+        .map(TableFormatter::safeText)
+        .mapToInt(String::length)
+        .max()
+        .orElse(0);
   }
 
   public static void addStudent() {
-    System.out.print("\nEnter name: ");
-    String name = SC.nextLine();
-    System.out.print("Enter major: ");
-    String major = SC.nextLine();
-    System.out.print("Enter gender (Male/Female/Other): ");
-    String gender = SC.nextLine();
+    String id = ConsoleIO.prompt("\nEnter ID: ");
+    String name = ConsoleIO.prompt("\nEnter name: ");
+    String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
 
     try {
-      Student student = studentService.addStudent(name, major, gender);
+      Student student = studentService.addStudent(id, name, gender);
       System.out.println("Successfully added ID: " + student.getId());
-    } catch (Exception e) {
-      System.out.println("Error: " + e.getMessage());
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      ConsoleMessagePrinter.error(e);
     }
   }
 
   public static void deleteStudentById() {
-    System.out.print("\nEnter ID to delete: ");
-    String input = SC.nextLine().trim();
+    String input = ConsolePrompt.trimmed("\nEnter ID to delete: ");
 
     try {
-      int id = Integer.parseInt(input);
-      studentService.deleteStudentById(id);
-      System.out.println("Student with ID " + id + " has been deleted.");
-    } catch (NumberFormatException e) {
-      System.out.println("Invalid ID format.");
-    } catch (Exception e) {
-      System.out.println(e.getMessage());
+      Student deletedStudent = studentService.deleteStudentById(input);
+      boolean removedSchedule = scheduleService.removeScheduleByStudentId(input);
+      System.out.println("Student with ID " + deletedStudent.getId() + " has been deleted.");
+      if (removedSchedule) {
+        System.out.println("Schedule for student ID " + input + " has also been removed.");
+      }
+    } catch (IllegalArgumentException | IllegalStateException e) {
+      ConsoleMessagePrinter.error(e);
+    }
+  }
+
+  private static boolean flushPendingStudentChanges() {
+    try {
+      studentService.flushPendingChanges();
+      scheduleService.flushPendingChanges();
+      return true;
+    } catch (IllegalStateException e) {
+      ConsoleMessagePrinter.error(e);
+      ConsolePause.waitForEnter();
+      return false;
     }
   }
 }

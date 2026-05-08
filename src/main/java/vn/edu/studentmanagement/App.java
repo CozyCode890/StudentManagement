@@ -3,31 +3,50 @@ package vn.edu.studentmanagement;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
+import vn.edu.studentmanagement.storage.CourseCatalog;
+import vn.edu.studentmanagement.storage.CsvScheduleRepository;
 import vn.edu.studentmanagement.storage.CsvStudentRepository;
-import vn.edu.studentmanagement.ui.ConsoleIO;
+import vn.edu.studentmanagement.service.ScheduleService;
+import vn.edu.studentmanagement.service.StudentService;
 import vn.edu.studentmanagement.ui.MainMenu;
 import vn.edu.studentmanagement.ui.ScheduleMenu;
 import vn.edu.studentmanagement.ui.StudentMenu;
+import vn.edu.studentmanagement.ui.TerminalController;
 
 public class App {
   private static final Scanner SC = new Scanner(System.in, StandardCharsets.UTF_8);
 
   public static void main(String[] args) {
-    CsvStudentRepository.ensureFileExists();
+    CsvStudentRepository studentRepository = new CsvStudentRepository();
+    CourseCatalog courseCatalog = new CourseCatalog();
+    CsvScheduleRepository scheduleRepository = new CsvScheduleRepository(courseCatalog);
+    studentRepository.ensureFileExists();
+    scheduleRepository.ensureFileExists();
+
+    StudentService studentService = new StudentService(studentRepository);
+    ScheduleService scheduleService = new ScheduleService(studentService, courseCatalog, scheduleRepository);
 
     while (true) {
-      ConsoleIO.clearScreen();
+      TerminalController.clearScreen();
       MainMenu.printMenu();
       String choice = SC.nextLine().trim();
 
       if (choice.equalsIgnoreCase("q") || choice.equals("0")) {
-        System.out.println("Bye 👋");
-        break;
+        try {
+          studentService.flushPendingChanges();
+          scheduleService.flushPendingChanges();
+          System.out.println("Bye 👋");
+          break;
+        } catch (IllegalStateException e) {
+          System.out.println("[ERROR] " + e.getMessage());
+          System.out.print("Press Enter to continue...");
+          SC.nextLine();
+        }
       }
 
       switch (choice) {
-        case "1" -> StudentMenu.run();
-        case "2" -> ScheduleMenu.run();
+        case "1" -> StudentMenu.run(studentService, scheduleService);
+        case "2" -> ScheduleMenu.run(studentService, courseCatalog, scheduleService);
         default -> {
           System.out.println("Invalid choice. Please select 1, 2, 0, or q.\n");
           System.out.print("Press Enter to continue...");
