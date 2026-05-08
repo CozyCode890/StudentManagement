@@ -147,7 +147,7 @@ public class StudentService {
     validateStudentData(id, name, gender);
 
     String cleanId = normalizeStudentId(id);
-    String cleanName = name.trim();
+    String cleanName = normalizeStudentName(name);
     String cleanGender = normalizeGender(gender);
     Major major = extractMajorFromId(cleanId);
 
@@ -194,6 +194,15 @@ public class StudentService {
 
   public String normalizeStudentId(String id) {
     return id.trim().toUpperCase();
+  }
+
+  public String normalizeStudentName(String name) {
+    String[] words = name.trim().toLowerCase().split("\\s+");
+    List<String> normalizedWords = new ArrayList<>();
+    for (String word : words) {
+      normalizedWords.add(word.substring(0, 1).toUpperCase() + word.substring(1));
+    }
+    return String.join(" ", normalizedWords);
   }
 
   public void flushPendingChanges() {
