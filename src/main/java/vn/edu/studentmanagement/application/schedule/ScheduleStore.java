@@ -10,19 +10,19 @@ import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.infrastructure.csv.CsvRepository;
 import vn.edu.studentmanagement.infrastructure.csv.StorageException;
 
-public class ScheduleStore {
+class ScheduleStore {
   private static final int SAVE_BATCH_SIZE = 5;
 
   private final CsvRepository<Schedule> scheduleRepository;
   private final StudentNormalizer studentNormalizer;
   private int pendingScheduleChanges;
 
-  public ScheduleStore(CsvRepository<Schedule> scheduleRepository, StudentNormalizer studentNormalizer) {
+  ScheduleStore(CsvRepository<Schedule> scheduleRepository, StudentNormalizer studentNormalizer) {
     this.scheduleRepository = Objects.requireNonNull(scheduleRepository);
     this.studentNormalizer = Objects.requireNonNull(studentNormalizer);
   }
 
-  public Map<String, Schedule> loadSchedulesByStudentId() {
+  Map<String, Schedule> loadSchedulesByStudentId() {
     try {
       Map<String, Schedule> schedulesByStudentId = new LinkedHashMap<>();
       for (Schedule schedule : scheduleRepository.readAll()) {
@@ -36,14 +36,14 @@ public class ScheduleStore {
     }
   }
 
-  public void markChanged(Map<String, Schedule> schedulesByStudentId) {
+  void markChanged(Map<String, Schedule> schedulesByStudentId) {
     pendingScheduleChanges++;
     if (pendingScheduleChanges >= SAVE_BATCH_SIZE) {
       saveSchedules(schedulesByStudentId);
     }
   }
 
-  public void flushPendingChanges(Map<String, Schedule> schedulesByStudentId) {
+  void flushPendingChanges(Map<String, Schedule> schedulesByStudentId) {
     if (pendingScheduleChanges > 0) {
       saveSchedules(schedulesByStudentId);
     }
