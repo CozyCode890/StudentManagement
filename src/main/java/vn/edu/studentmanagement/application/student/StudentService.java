@@ -50,17 +50,32 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
+  public void validateNewStudentId(String id) {
+    String cleanId = normalizer.normalizeStudentId(id);
+    validator.validateNewStudentId(cleanId);
+
+    if (studentsById.containsKey(cleanId)) {
+      throw new IllegalArgumentException("ID already exists: " + cleanId);
+    }
+  }
+
+  public void validateStudentName(String name) {
+    validator.validateStudentName(normalizer.normalizeStudentName(name));
+  }
+
+  public void validateGender(String gender) {
+    validator.validateGender(normalizer.normalizeGender(gender));
+  }
+
   public Student addStudent(String id, String name, String gender) {
     String cleanId = normalizer.normalizeStudentId(id);
     String cleanName = normalizer.normalizeStudentName(name);
     String cleanGender = normalizer.normalizeGender(gender);
 
-    validator.validateStudentData(cleanId, cleanName, cleanGender);
+    validateNewStudentId(cleanId);
+    validateStudentName(cleanName);
+    validateGender(cleanGender);
     Major major = normalizer.extractMajorFromId(cleanId);
-
-    if (studentsById.containsKey(cleanId)) {
-      throw new IllegalArgumentException("ID already exists: " + cleanId);
-    }
 
     Student s = new Student(
         cleanId,

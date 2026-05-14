@@ -3,12 +3,6 @@ package vn.edu.studentmanagement.domain.validation;
 public class StudentValidator {
   private static final String NAME_PATTERN = "\\p{L}+(?:\\s+\\p{L}+)*";
 
-  public void validateStudentData(String id, String name, String gender) {
-    validateNewStudentId(id);
-    validateStudentName(name);
-    validateGender(gender);
-  }
-
   public void validateNewStudentId(String id) {
     validateStudentIdFormat(id);
   }
