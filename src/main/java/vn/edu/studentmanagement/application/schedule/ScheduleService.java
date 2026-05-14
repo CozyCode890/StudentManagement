@@ -28,24 +28,6 @@ public class ScheduleService {
 
   private final Map<String, Schedule> schedulesByStudentId;
 
-  public static class AddCourseResult {
-    private final boolean success;
-    private final String message;
-
-    public AddCourseResult(boolean success, String message) {
-      this.success = success;
-      this.message = message;
-    }
-
-    public boolean isSuccess() {
-      return success;
-    }
-
-    public String getMessage() {
-      return message;
-    }
-  }
-
   public static class AvailableCourses {
     private final List<Course> generalCourses;
     private final List<Course> majorCourses;
@@ -100,45 +82,35 @@ public class ScheduleService {
     this.courseNormalizer = new CourseNormalizer();
   }
 
-  public AddCourseResult addCourse(String studentId, String courseId) {
-    try {
-      studentValidator.validateExistingStudentId(studentId);
-      scheduleValidator.validateCourseId(courseId);
+  public Course addCourse(String studentId, String courseId) {
+    studentValidator.validateRequiredStudentId(studentId);
+    scheduleValidator.validateCourseId(courseId);
 
-      String sid = studentNormalizer.normalizeStudentId(studentId);
-      String cid = courseNormalizer.normalizeCourseId(courseId);
+    String sid = studentNormalizer.normalizeStudentId(studentId);
+    String cid = courseNormalizer.normalizeCourseId(courseId);
 
-      Student student = studentService.findById(sid);
-      if (student == null) {
-        throw new IllegalArgumentException("ID not found");
-      }
-
-      Course selectedCourse = courseCatalog.findByCourseId(cid);
-      if (selectedCourse == null) {
-        throw new IllegalArgumentException("Course not found");
-      }
-
-      scheduleValidator.validateCourseAllowedForMajor(selectedCourse, student.getMajor());
-
-      Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
-      scheduleValidator.validateCourseCanBeAdded(schedule, cid, selectedCourse);
-
-      schedule.addCourse(selectedCourse);
-      markScheduleChanged();
-      return new AddCourseResult(true, "Added successfully");
-    } catch (IllegalArgumentException e) {
-      return new AddCourseResult(false, e.getMessage());
-    } catch (IllegalStateException e) {
-      return new AddCourseResult(false, e.getMessage());
+    Student student = studentService.findRequiredById(sid);
+    Course selectedCourse = courseCatalog.findByCourseId(cid);
+    if (selectedCourse == null) {
+      throw new IllegalArgumentException("Course not found: " + cid);
     }
+
+    scheduleValidator.validateCourseAllowedForMajor(selectedCourse, student.getMajor());
+
+    Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
+    scheduleValidator.validateCourseCanBeAdded(schedule, cid, selectedCourse);
+
+    schedule.addCourse(selectedCourse);
+    markScheduleChanged();
+    return selectedCourse;
   }
 
   public boolean removeCourse(String studentId, String courseId) {
-    studentValidator.validateExistingStudentId(studentId);
+    Student student = studentService.findRequiredById(studentId);
     if (courseId == null || courseId.isBlank()) {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
-    String sid = studentNormalizer.normalizeStudentId(studentId);
+    String sid = student.getId();
     String cid = courseNormalizer.normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
@@ -146,19 +118,19 @@ public class ScheduleService {
       return false;
 
     boolean removed = schedule.removeCourseById(cid);
-    if (!schedule.hasSelectedCourses()) {
-      schedulesByStudentId.remove(sid);
-    }
     if (removed) {
+      if (!schedule.hasSelectedCourses()) {
+        schedulesByStudentId.remove(sid);
+      }
       markScheduleChanged();
     }
     return removed;
   }
 
   public boolean removeScheduleByStudentId(String studentId) {
-    studentValidator.validateExistingStudentId(studentId);
+    Student student = studentService.findRequiredById(studentId);
 
-    Schedule removedSchedule = schedulesByStudentId.remove(studentNormalizer.normalizeStudentId(studentId));
+    Schedule removedSchedule = schedulesByStudentId.remove(student.getId());
     if (removedSchedule == null) {
       return false;
     }
@@ -168,12 +140,7 @@ public class ScheduleService {
   }
 
   public AvailableCourses getAvailableCoursesForStudent(String studentId) {
-    studentValidator.validateExistingStudentId(studentId);
-
-    Student student = studentService.findById(studentId);
-    if (student == null) {
-      throw new IllegalArgumentException("ID not found");
-    }
+    Student student = studentService.findRequiredById(studentId);
 
     return new AvailableCourses(
         courseCatalog.getGeneralCourses(),
@@ -185,8 +152,8 @@ public class ScheduleService {
   }
 
   public List<Course> findCoursesByStudentId(String studentId) {
-    studentValidator.validateExistingStudentId(studentId);
-    String sid = studentNormalizer.normalizeStudentId(studentId);
+    Student student = studentService.findRequiredById(studentId);
+    String sid = student.getId();
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
       schedule = new Schedule(sid);

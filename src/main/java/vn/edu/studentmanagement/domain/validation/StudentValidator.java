@@ -28,7 +28,7 @@ public class StudentValidator {
   }
 
   public void validateStudentIdFormat(String id) {
-    validateExistingStudentId(id);
+    validateRequiredStudentId(id);
 
     String cleanId = normalizer.normalizeStudentId(id);
     if (cleanId.length() != 11) {
@@ -60,7 +60,7 @@ public class StudentValidator {
     }
   }
 
-  public void validateExistingStudentId(String id) {
+  public void validateRequiredStudentId(String id) {
     if (id == null || id.trim().isEmpty()) {
       throw new IllegalArgumentException("ID cannot be empty.");
     }

@@ -91,8 +91,16 @@ public class StudentService {
   }
 
   public Student findById(String id) {
-    validator.validateExistingStudentId(id);
+    validator.validateRequiredStudentId(id);
     return studentsById.get(normalizer.normalizeStudentId(id));
+  }
+
+  public Student findRequiredById(String id) {
+    Student student = findById(id);
+    if (student == null) {
+      throw new IllegalArgumentException("ID not found: " + normalizer.normalizeStudentId(id));
+    }
+    return student;
   }
 
   public void flushPendingChanges() {

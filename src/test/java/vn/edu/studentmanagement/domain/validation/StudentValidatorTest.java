@@ -44,12 +44,12 @@ class StudentValidatorTest {
   }
 
   @Test
-  void validateExistingStudentIdOnlyRequiresNonBlankValue() {
-    assertDoesNotThrow(() -> validator.validateExistingStudentId("SV001"));
+  void validateRequiredStudentIdOnlyRequiresNonBlankValue() {
+    assertDoesNotThrow(() -> validator.validateRequiredStudentId("SV001"));
 
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
-        () -> validator.validateExistingStudentId(" "));
+        () -> validator.validateRequiredStudentId(" "));
 
     assertEquals("ID cannot be empty.", exception.getMessage());
   }
