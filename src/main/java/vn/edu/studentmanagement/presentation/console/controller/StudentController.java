@@ -13,23 +13,25 @@ import vn.edu.studentmanagement.presentation.console.menu.StudentMenuView;
 import vn.edu.studentmanagement.presentation.console.view.StudentView;
 
 public class StudentController {
-  private StudentService studentService;
-  private StudentListController studentListController;
+  private final StudentService studentService;
+  private final StudentListController studentListController;
+  private final StudentDeletionSelector studentDeletionSelector;
   private final StudentManagementService studentManagementService;
-  private final StudentMenuView MENU_VIEW = new StudentMenuView();
-  private final StudentView STUDENT_VIEW = new StudentView();
+  private final StudentMenuView menuView = new StudentMenuView();
+  private final StudentView studentView = new StudentView();
 
   public StudentController(StudentService studentService, StudentManagementService studentManagementService) {
     this.studentService = Objects.requireNonNull(studentService);
     this.studentManagementService = Objects.requireNonNull(studentManagementService);
     this.studentListController = new StudentListController(studentService);
+    this.studentDeletionSelector = new StudentDeletionSelector(studentService);
   }
 
   public void run() {
     while (true) {
       TerminalController.clearScreen();
 
-      MENU_VIEW.printMenu();
+      menuView.printMenu();
 
       String choice = ConsolePrompt.trimmed("Choose: ");
       switch (choice) {
@@ -39,7 +41,7 @@ public class StudentController {
           ConsolePause.waitForEnter();
         }
         case "3" -> {
-          deleteStudentById();
+          deleteStudent();
           ConsolePause.waitForEnter();
         }
         case "0" -> {
@@ -73,24 +75,24 @@ public class StudentController {
       }
 
       Student student = studentService.addStudent(id, name, gender);
-      STUDENT_VIEW.printAdded(student);
+      studentView.printAdded(student);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
     }
   }
 
-  private void deleteStudentById() {
-    String input = ConsolePrompt.trimmed("\nEnter ID to delete (0 to return): ");
-    if (input.equals("0")) {
+  private void deleteStudent() {
+    Student student = studentDeletionSelector.selectStudentToDelete();
+    if (student == null) {
       return;
     }
 
     try {
-      StudentManagementService.DeleteStudentResult result = studentManagementService.deleteStudentById(input);
+      StudentManagementService.DeleteStudentResult result = studentManagementService.deleteStudentById(student.getId());
 
-      STUDENT_VIEW.printDeleted(result.getStudent());
+      studentView.printDeleted(result.getStudent());
       if (result.isScheduleRemoved()) {
-        STUDENT_VIEW.printScheduleRemoved(result.getStudent().getId());
+        studentView.printScheduleRemoved(result.getStudent().getId());
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
