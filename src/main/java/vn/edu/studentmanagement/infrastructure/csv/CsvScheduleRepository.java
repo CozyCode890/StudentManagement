@@ -9,7 +9,6 @@ import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -18,6 +17,7 @@ import vn.edu.studentmanagement.application.store.RepositoryException;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
+import vn.edu.studentmanagement.domain.normalization.CourseNormalizer;
 
 public class CsvScheduleRepository extends CsvRepository<Schedule> {
   public static final Path CSV_PATH = Paths.get(
@@ -26,6 +26,7 @@ public class CsvScheduleRepository extends CsvRepository<Schedule> {
       "schedules.csv");
 
   private final CourseCatalog courseCatalog;
+  private final CourseNormalizer courseNormalizer = new CourseNormalizer();
 
   public CsvScheduleRepository(CourseCatalog courseCatalog) {
     super(CSV_PATH, "schedule");
@@ -50,7 +51,7 @@ public class CsvScheduleRepository extends CsvRepository<Schedule> {
         }
 
         String studentId = parts[0].trim();
-        String courseId = normalizeCourseId(parts[1]);
+        String courseId = courseNormalizer.normalizeCourseId(parts[1]);
         if (studentId.isEmpty() || courseId.isEmpty()) {
           continue;
         }
@@ -88,7 +89,4 @@ public class CsvScheduleRepository extends CsvRepository<Schedule> {
     }
   }
 
-  private String normalizeCourseId(String courseId) {
-    return courseId.trim().toUpperCase(Locale.ROOT);
-  }
 }

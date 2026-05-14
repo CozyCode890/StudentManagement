@@ -6,16 +6,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.CourseType;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.TimeSlot;
+import vn.edu.studentmanagement.domain.normalization.CourseNormalizer;
 
 public class CourseCatalog {
   private final Map<String, Course> byCourseId;
+  private final CourseNormalizer courseNormalizer = new CourseNormalizer();
 
   public CourseCatalog() {
     Map<String, Course> tmp = new LinkedHashMap<>();
@@ -60,7 +61,7 @@ public class CourseCatalog {
   public Course findByCourseId(String courseId) {
     if (courseId == null || courseId.isBlank())
       return null;
-    return byCourseId.get(normalizeCourseId(courseId));
+    return byCourseId.get(courseNormalizer.normalizeCourseId(courseId));
   }
 
   public boolean isEligibleForMajor(Course course, Major studentMajor) {
@@ -100,7 +101,4 @@ public class CourseCatalog {
     return result;
   }
 
-  private String normalizeCourseId(String courseId) {
-    return courseId.trim().toUpperCase(Locale.ROOT);
-  }
 }

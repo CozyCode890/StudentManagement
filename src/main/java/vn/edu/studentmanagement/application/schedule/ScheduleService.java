@@ -3,16 +3,16 @@ package vn.edu.studentmanagement.application.schedule;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 
-import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.application.store.Repository;
+import vn.edu.studentmanagement.application.student.StudentService;
+import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
 import vn.edu.studentmanagement.domain.model.Student;
-import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
+import vn.edu.studentmanagement.domain.normalization.CourseNormalizer;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.domain.validation.ScheduleValidator;
 import vn.edu.studentmanagement.domain.validation.StudentValidator;
@@ -24,6 +24,7 @@ public class ScheduleService {
   private final CourseCatalog courseCatalog;
   private final ScheduleValidator scheduleValidator;
   private final ScheduleStore scheduleStore;
+  private final CourseNormalizer courseNormalizer;
 
   private final Map<String, Schedule> schedulesByStudentId;
 
@@ -96,6 +97,7 @@ public class ScheduleService {
     this.scheduleValidator = new ScheduleValidator(courseCatalog);
     this.scheduleStore = new ScheduleStore(Objects.requireNonNull(scheduleRepository), studentNormalizer);
     this.schedulesByStudentId = scheduleStore.loadSchedulesByStudentId();
+    this.courseNormalizer = new CourseNormalizer();
   }
 
   public AddCourseResult addCourse(String studentId, String courseId) {
@@ -104,7 +106,7 @@ public class ScheduleService {
       scheduleValidator.validateCourseId(courseId);
 
       String sid = studentNormalizer.normalizeStudentId(studentId);
-      String cid = normalizeCourseId(courseId);
+      String cid = courseNormalizer.normalizeCourseId(courseId);
 
       Student student = studentService.findById(sid);
       if (student == null) {
@@ -137,7 +139,7 @@ public class ScheduleService {
       throw new IllegalArgumentException("Course id cannot be empty.");
     }
     String sid = studentNormalizer.normalizeStudentId(studentId);
-    String cid = normalizeCourseId(courseId);
+    String cid = courseNormalizer.normalizeCourseId(courseId);
 
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null)
@@ -198,10 +200,6 @@ public class ScheduleService {
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));
     return courses;
-  }
-
-  private String normalizeCourseId(String courseId) {
-    return courseId.trim().toUpperCase(Locale.ROOT);
   }
 
   private void markScheduleChanged() {
