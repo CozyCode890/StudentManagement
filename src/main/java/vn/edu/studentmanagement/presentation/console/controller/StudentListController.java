@@ -57,7 +57,7 @@ public class StudentListController {
         throw new IllegalStateException("Student list is empty.");
       }
 
-      String keyword = ConsoleIO.prompt("Enter name keyword (0 to return): ");
+      String keyword = ConsoleIO.prompt("\nEnter name keyword (0 to return): ");
       if (keyword.trim().equals("0")) {
         return;
       }

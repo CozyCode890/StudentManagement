@@ -32,7 +32,7 @@ public class ScheduleService {
     private final List<Course> generalCourses;
     private final List<Course> majorCourses;
 
-    public AvailableCourses(List<Course> generalCourses, List<Course> majorCourses) {
+    private AvailableCourses(List<Course> generalCourses, List<Course> majorCourses) {
       this.generalCourses = List.copyOf(generalCourses);
       this.majorCourses = List.copyOf(majorCourses);
     }
@@ -159,6 +159,12 @@ public class ScheduleService {
       schedule = new Schedule(sid);
     }
     return schedule.getSelectedCourses();
+  }
+
+  public boolean hasReachedCourseLimit(String studentId) {
+    Student student = studentService.findRequiredById(studentId);
+    Schedule schedule = schedulesByStudentId.get(student.getId());
+    return schedule != null && schedule.isFull();
   }
 
   public List<Course> getScheduleSortedByDayThenStart(String studentId) {

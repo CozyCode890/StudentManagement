@@ -7,6 +7,7 @@ import vn.edu.studentmanagement.application.schedule.ScheduleService;
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
 import vn.edu.studentmanagement.presentation.console.io.TerminalController;
 import vn.edu.studentmanagement.presentation.console.menu.MainMenuView;
 
@@ -46,8 +47,7 @@ public class MainController {
         case "2" -> scheduleController.run();
         default -> {
           ConsoleMessagePrinter.warning("Invalid choice. Please select 1, 2, 0, or q.\n");
-          ConsoleIO.print("Press Enter to continue...");
-          ConsoleIO.readLine();
+          ConsolePause.waitForEnter();
         }
       }
     }
@@ -59,8 +59,7 @@ public class MainController {
       return true;
     } catch (IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
-      ConsoleIO.print("Press Enter to continue...");
-      ConsoleIO.readLine();
+      ConsolePause.waitForEnter();
       return false;
     }
   }

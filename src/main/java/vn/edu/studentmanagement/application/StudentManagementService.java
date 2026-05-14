@@ -34,7 +34,7 @@ public class StudentManagementService {
     private final Student student;
     private final boolean scheduleRemoved;
 
-    public DeleteStudentResult(Student student, boolean scheduleRemoved) {
+    private DeleteStudentResult(Student student, boolean scheduleRemoved) {
       this.student = Objects.requireNonNull(student);
       this.scheduleRemoved = scheduleRemoved;
     }

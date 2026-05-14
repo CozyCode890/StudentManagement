@@ -44,14 +44,12 @@ public class ScheduleController {
       switch (choice) {
         case "1" -> {
           scheduleViewer.show();
-          ConsolePause.waitForEnter();
         }
         case "2" -> {
           courseAdder.show();
         }
         case "3" -> {
           courseRemover.show();
-          ConsolePause.waitForEnter();
         }
         case "0" -> {
           if (flushPendingChanges()) {

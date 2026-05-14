@@ -7,6 +7,7 @@ import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.application.schedule.ScheduleService;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
+import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
 import vn.edu.studentmanagement.presentation.console.view.ScheduleView;
 
 class ScheduleViewer {
@@ -29,8 +30,10 @@ class ScheduleViewer {
     try {
       List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
       scheduleView.printSchedule(student, courses);
+      ConsolePause.waitForEnter();
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
+      ConsolePause.waitForEnter();
     }
   }
 }

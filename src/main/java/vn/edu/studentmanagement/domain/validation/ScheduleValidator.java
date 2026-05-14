@@ -27,16 +27,23 @@ public class ScheduleValidator {
   }
 
   public void validateCourseCanBeAdded(Schedule schedule, String courseId, Course selectedCourse) {
+    if (schedule.canAddCourse(selectedCourse)) {
+      return;
+    }
+
+    throw new IllegalArgumentException(getCourseAddFailureMessage(schedule, courseId, selectedCourse));
+  }
+
+  private String getCourseAddFailureMessage(Schedule schedule, String courseId, Course selectedCourse) {
     if (schedule.containsCourse(courseId)) {
-      throw new IllegalArgumentException("Course already added");
+      return "Course already added";
     }
-
     if (schedule.isFull()) {
-      throw new IllegalArgumentException("Max 3 courses");
+      return "Max 3 courses";
     }
-
     if (schedule.hasConflictWith(selectedCourse)) {
-      throw new IllegalArgumentException("Conflict time");
+      return "Conflict time";
     }
+    return "Course cannot be added";
   }
 }

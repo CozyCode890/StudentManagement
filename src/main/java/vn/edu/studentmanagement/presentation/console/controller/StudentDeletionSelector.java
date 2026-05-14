@@ -87,7 +87,7 @@ class StudentDeletionSelector {
       System.out.println("\n--- Select Student To Delete: Page " + (currentPage + 1) + " of " + totalPages + " ---");
       StudentTableRenderer.render(candidates.subList(start, end), start + 1);
 
-      System.out.println("\nEnter STT to delete | [N] Next | [P] Previous | [S] Search again | [B] Back");
+      System.out.println("\nEnter STT to delete | [N] Next | [P] Previous | [S] Search again | [B|0] Back");
       String choice = ConsolePrompt.upperTrimmed("Action: ");
 
       if (choice.equals("N") && currentPage < totalPages - 1) {

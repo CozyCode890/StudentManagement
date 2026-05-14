@@ -37,12 +37,14 @@ public class StudentController {
       switch (choice) {
         case "1" -> studentListController.show();
         case "2" -> {
-          addStudent();
-          ConsolePause.waitForEnter();
+          if (addStudent()) {
+            ConsolePause.waitForEnter();
+          }
         }
         case "3" -> {
-          deleteStudent();
-          ConsolePause.waitForEnter();
+          if (deleteStudent()) {
+            ConsolePause.waitForEnter();
+          }
         }
         case "0" -> {
           if (flushPendingStudentChanges()) {
@@ -57,34 +59,36 @@ public class StudentController {
     }
   }
 
-  public void addStudent() {
+  private boolean addStudent() {
     try {
       String id = ConsolePrompt.trimmed("\nEnter ID (0 to return): ");
       if (id.equals("0")) {
-        return;
+        return false;
       }
 
       String name = ConsolePrompt.trimmed("\nEnter name (0 to return): ");
       if (name.equals("0")) {
-        return;
+        return false;
       }
 
       String gender = ConsolePrompt.trimmed("Enter gender (Male/Female/M/F, 0 to return): ");
       if (gender.equals("0")) {
-        return;
+        return false;
       }
 
       Student student = studentService.addStudent(id, name, gender);
       studentView.printAdded(student);
+      return true;
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
+      return true;
     }
   }
 
-  private void deleteStudent() {
+  private boolean deleteStudent() {
     Student student = studentDeletionSelector.selectStudentToDelete();
     if (student == null) {
-      return;
+      return false;
     }
 
     try {
@@ -94,8 +98,10 @@ public class StudentController {
       if (result.isScheduleRemoved()) {
         studentView.printScheduleRemoved(result.getStudent().getId());
       }
+      return true;
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
+      return true;
     }
   }
 

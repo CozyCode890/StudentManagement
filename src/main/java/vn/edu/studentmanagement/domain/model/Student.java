@@ -31,17 +31,6 @@ public class Student {
     return major;
   }
 
-  public String getLastName() {
-    if (fullName == null) {
-      return null;
-    }
-    String[] parts = fullName.trim().split("\\s+");
-    if (parts.length == 0) {
-      return null;
-    }
-    return parts[parts.length - 1];
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o)
