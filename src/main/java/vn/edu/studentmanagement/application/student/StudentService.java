@@ -83,8 +83,7 @@ public class StudentService {
         cleanId,
         cleanName,
         major,
-        Gender.valueOf(cleanGender),
-        0);
+        Gender.valueOf(cleanGender));
     studentsById.put(cleanId, s);
     markStudentChanged();
 

@@ -52,7 +52,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
           String fullName = parts[1].trim();
           Major major = Major.valueOf(parts[2].trim().toUpperCase());
           Gender gender = Gender.valueOf(parts[3].trim().toUpperCase());
-          students.add(new Student(id, fullName, major, gender, 0));
+          students.add(new Student(id, fullName, major, gender));
         } catch (IllegalArgumentException ignored) {
         }
       }

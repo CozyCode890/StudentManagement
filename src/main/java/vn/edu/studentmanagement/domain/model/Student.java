@@ -7,14 +7,12 @@ public class Student {
   private final String fullName;
   private final Major major;
   private final Gender gender;
-  private final int age;
 
-  public Student(String id, String fullName, Major major, Gender gender, int age) {
+  public Student(String id, String fullName, Major major, Gender gender) {
     this.id = id;
     this.fullName = fullName;
     this.major = major;
     this.gender = gender;
-    this.age = age;
   }
 
   public String getId() {
@@ -31,10 +29,6 @@ public class Student {
 
   public Major getMajor() {
     return major;
-  }
-
-  public int getAge() {
-    return age;
   }
 
   public String getLastName() {
