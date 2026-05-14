@@ -11,33 +11,25 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import vn.edu.studentmanagement.application.store.RepositoryException;
-import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Gender;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Student;
 
-public class CsvStudentRepository implements Repository<Student> {
+public class CsvStudentRepository extends CsvRepository<Student> {
   public static final Path CSV_PATH = Paths.get(
       System.getProperty("user.home"),
       ".student-manager",
       "students.csv");
 
-  private void ensureFileExists() {
-    try {
-      Files.createDirectories(CSV_PATH.getParent());
-      if (Files.notExists(CSV_PATH)) {
-        Files.createFile(CSV_PATH);
-      }
-    } catch (IOException e) {
-      throw new RepositoryException("Failed to create/open student CSV file.", e);
-    }
+  public CsvStudentRepository() {
+    super(CSV_PATH, "student");
   }
 
   @Override
   public List<Student> readAll() {
     ensureFileExists();
     try {
-      List<String> lines = Files.readAllLines(CSV_PATH, StandardCharsets.UTF_8);
+      List<String> lines = Files.readAllLines(getCsvPath(), StandardCharsets.UTF_8);
       List<Student> students = new ArrayList<>();
 
       for (String line : lines) {
@@ -70,7 +62,7 @@ public class CsvStudentRepository implements Repository<Student> {
         .map(s -> s.getId() + "," + s.getFullName() + "," + s.getMajor() + "," + s.getGender())
         .collect(Collectors.toList());
     try {
-      Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
+      Files.write(getCsvPath(), lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
       throw new RepositoryException("Failed to write student CSV file.", e);

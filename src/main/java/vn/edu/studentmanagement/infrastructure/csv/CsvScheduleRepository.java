@@ -14,13 +14,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.application.store.RepositoryException;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
 
-public class CsvScheduleRepository implements Repository<Schedule> {
+public class CsvScheduleRepository extends CsvRepository<Schedule> {
   public static final Path CSV_PATH = Paths.get(
       System.getProperty("user.home"),
       ".student-manager",
@@ -29,25 +28,15 @@ public class CsvScheduleRepository implements Repository<Schedule> {
   private final CourseCatalog courseCatalog;
 
   public CsvScheduleRepository(CourseCatalog courseCatalog) {
+    super(CSV_PATH, "schedule");
     this.courseCatalog = Objects.requireNonNull(courseCatalog);
-  }
-
-  private void ensureFileExists() {
-    try {
-      Files.createDirectories(CSV_PATH.getParent());
-      if (Files.notExists(CSV_PATH)) {
-        Files.createFile(CSV_PATH);
-      }
-    } catch (IOException e) {
-      throw new RepositoryException("Failed to create/open schedule CSV file.", e);
-    }
   }
 
   @Override
   public List<Schedule> readAll() {
     ensureFileExists();
     try {
-      List<String> lines = Files.readAllLines(CSV_PATH, StandardCharsets.UTF_8);
+      List<String> lines = Files.readAllLines(getCsvPath(), StandardCharsets.UTF_8);
       Map<String, Schedule> schedulesByStudentId = new LinkedHashMap<>();
 
       for (String line : lines) {
@@ -92,7 +81,7 @@ public class CsvScheduleRepository implements Repository<Schedule> {
         .collect(Collectors.toList());
 
     try {
-      Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
+      Files.write(getCsvPath(), lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
       throw new RepositoryException("Failed to write schedule CSV file.", e);
