@@ -3,7 +3,6 @@ package vn.edu.studentmanagement.domain.validation;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.domain.model.Course;
-import vn.edu.studentmanagement.domain.model.CourseDefinition;
 import vn.edu.studentmanagement.domain.model.CourseType;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Schedule;
@@ -25,8 +24,8 @@ public class ScheduleValidator {
     }
   }
 
-  public void validateCourseAllowedForMajor(CourseDefinition def, Major studentMajor) {
-    if (!isEligibleForMajor(def, studentMajor)) {
+  public void validateCourseAllowedForMajor(Course course, Major studentMajor) {
+    if (!isEligibleForMajor(course, studentMajor)) {
       throw new IllegalArgumentException("Course not allowed for student's major");
     }
   }
@@ -64,14 +63,14 @@ public class ScheduleValidator {
     return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
-  private boolean isEligibleForMajor(CourseDefinition def, Major studentMajor) {
-    if (def == null) {
+  private boolean isEligibleForMajor(Course course, Major studentMajor) {
+    if (course == null) {
       return false;
     }
-    if (def.getType() == CourseType.GENERAL) {
+    if (course.getType() == CourseType.GENERAL) {
       return true;
     }
-    return studentMajor != null && def.getType() == CourseType.MAJOR && def.getMajor() == studentMajor;
+    return studentMajor != null && course.getType() == CourseType.MAJOR && course.getMajor() == studentMajor;
   }
 
   private boolean isValidTimeSlot(TimeSlot timeSlot) {

@@ -9,7 +9,6 @@ import java.util.Objects;
 
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.domain.model.Course;
-import vn.edu.studentmanagement.domain.model.CourseDefinition;
 import vn.edu.studentmanagement.domain.model.Schedule;
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.domain.model.TimeSlot;
@@ -104,18 +103,17 @@ public class ScheduleService {
         throw new IllegalArgumentException("ID not found");
       }
 
-      CourseDefinition def = courseCatalog.findByCourseId(cid);
-      if (def == null) {
+      Course selectedCourse = courseCatalog.findByCourseId(cid);
+      if (selectedCourse == null) {
         throw new IllegalArgumentException("Course not found");
       }
 
-      scheduleValidator.validateCourseAllowedForMajor(def, student.getMajor());
+      scheduleValidator.validateCourseAllowedForMajor(selectedCourse, student.getMajor());
 
-      Course selectedCourse = courseCatalog.createScheduledCourse(cid);
       Schedule schedule = schedulesByStudentId.computeIfAbsent(sid, Schedule::new);
       scheduleValidator.validateCourseCanBeAdded(schedule, cid, selectedCourse);
 
-      schedule.getSelectedCourses().add(selectedCourse);
+      schedule.addCourse(selectedCourse);
       markScheduleChanged();
       return new AddCourseResult(true, "Added successfully");
     } catch (IllegalArgumentException e) {
@@ -137,8 +135,8 @@ public class ScheduleService {
     if (schedule == null)
       return false;
 
-    boolean removed = schedule.getSelectedCourses().removeIf(c -> c.getCourseId().equals(cid));
-    if (schedule.getSelectedCourses().isEmpty()) {
+    boolean removed = schedule.removeCourseById(cid);
+    if (!schedule.hasSelectedCourses()) {
       schedulesByStudentId.remove(sid);
     }
     if (removed) {

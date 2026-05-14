@@ -3,7 +3,6 @@ package vn.edu.studentmanagement.presentation.console.view;
 import java.util.List;
 
 import vn.edu.studentmanagement.domain.model.Course;
-import vn.edu.studentmanagement.domain.model.CourseDefinition;
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
@@ -22,8 +21,8 @@ public class ScheduleView {
 
   public void printAvailableCourses(
       Student student,
-      List<CourseDefinition> generalCourses,
-      List<CourseDefinition> majorCourses) {
+      List<Course> generalCourses,
+      List<Course> majorCourses) {
     ConsoleIO.println("\n--- AVAILABLE COURSES FOR " + student.getMajor() + " ---");
     ConsoleIO.println("\nGeneral courses:");
     CourseTableRenderer.renderDefinitions(generalCourses);

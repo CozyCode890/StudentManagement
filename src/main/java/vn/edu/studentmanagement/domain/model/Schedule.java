@@ -1,13 +1,12 @@
 package vn.edu.studentmanagement.domain.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Schedule {
-  private String studentId;
-  private List<Course> selectedCourses = new ArrayList<>();
-
-  public Schedule() {}
+  private final String studentId;
+  private final List<Course> selectedCourses = new ArrayList<>();
 
   public Schedule(String studentId) {
     this.studentId = studentId;
@@ -17,19 +16,23 @@ public class Schedule {
     return studentId;
   }
 
-  public void setStudentId(String studentId) {
-    this.studentId = studentId;
-  }
-
   public List<Course> getSelectedCourses() {
-    return selectedCourses;
+    return Collections.unmodifiableList(selectedCourses);
   }
 
-  public void setSelectedCourses(List<Course> selectedCourses) {
-    this.selectedCourses = selectedCourses;
+  public void addCourse(Course course) {
+    selectedCourses.add(course);
+  }
+
+  public boolean removeCourseById(String courseId) {
+    return selectedCourses.removeIf(course -> course.getCourseId().equals(courseId));
+  }
+
+  public boolean hasSelectedCourses() {
+    return !selectedCourses.isEmpty();
   }
 
   public int selectedCoursesCount() {
-    return selectedCourses == null ? 0 : selectedCourses.size();
+    return selectedCourses.size();
   }
 }

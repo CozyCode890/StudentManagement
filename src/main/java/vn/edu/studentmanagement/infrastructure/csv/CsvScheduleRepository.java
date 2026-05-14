@@ -65,13 +65,13 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
           continue;
         }
 
-        Course course = courseCatalog.createScheduledCourse(courseId);
+        Course course = courseCatalog.findByCourseId(courseId);
         if (course == null) {
           continue;
         }
 
         Schedule schedule = schedulesByStudentId.computeIfAbsent(studentId, Schedule::new);
-        schedule.getSelectedCourses().add(course);
+        schedule.addCourse(course);
       }
 
       return new ArrayList<>(schedulesByStudentId.values());
