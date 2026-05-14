@@ -24,6 +24,10 @@ public class StudentValidator {
   }
 
   public void validateNewStudentId(String id) {
+    validateStudentIdFormat(id);
+  }
+
+  public void validateStudentIdFormat(String id) {
     validateExistingStudentId(id);
 
     String cleanId = normalizer.normalizeStudentId(id);

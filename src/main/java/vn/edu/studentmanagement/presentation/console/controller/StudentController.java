@@ -5,7 +5,6 @@ import java.util.Objects;
 import vn.edu.studentmanagement.application.StudentManagementService;
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.domain.model.Student;
-import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePrompt;
@@ -49,7 +48,7 @@ public class StudentController {
           }
         }
         default -> {
-          ConsoleMessagePrinter.warning("Invalid choice.");
+          ConsoleMessagePrinter.warning("Invalid choice. Please continue.");
           ConsolePause.waitForEnter();
         }
       }
@@ -57,11 +56,22 @@ public class StudentController {
   }
 
   public void addStudent() {
-    String id = ConsoleIO.prompt("\nEnter ID: ");
-    String name = ConsoleIO.prompt("\nEnter name: ");
-    String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
-
     try {
+      String id = ConsolePrompt.trimmed("\nEnter ID (0 to return): ");
+      if (id.equals("0")) {
+        return;
+      }
+
+      String name = ConsolePrompt.trimmed("\nEnter name (0 to return): ");
+      if (name.equals("0")) {
+        return;
+      }
+
+      String gender = ConsolePrompt.trimmed("Enter gender (Male/Female/M/F, 0 to return): ");
+      if (gender.equals("0")) {
+        return;
+      }
+
       Student student = studentService.addStudent(id, name, gender);
       STUDENT_VIEW.printAdded(student);
     } catch (IllegalArgumentException | IllegalStateException e) {
@@ -70,7 +80,10 @@ public class StudentController {
   }
 
   private void deleteStudentById() {
-    String input = ConsolePrompt.trimmed("\nEnter ID to delete: ");
+    String input = ConsolePrompt.trimmed("\nEnter ID to delete (0 to return): ");
+    if (input.equals("0")) {
+      return;
+    }
 
     try {
       StudentManagementService.DeleteStudentResult result = studentManagementService.deleteStudentById(input);

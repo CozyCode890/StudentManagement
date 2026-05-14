@@ -52,11 +52,19 @@ public class StudentListController {
   }
 
   private void searchByName() {
-    String keyword = ConsoleIO.prompt("Enter name keyword: ");
     try {
+      if (studentService.findAll().isEmpty()) {
+        throw new IllegalStateException("Student list is empty.");
+      }
+
+      String keyword = ConsoleIO.prompt("Enter name keyword (0 to return): ");
+      if (keyword.trim().equals("0")) {
+        return;
+      }
+
       List<Student> students = studentService.findByName(keyword);
       showPaginated(students, "No students matched your search.");
-    } catch (IllegalArgumentException e) {
+    } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
       ConsolePause.waitForEnter();
     }

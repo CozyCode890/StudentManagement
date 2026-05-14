@@ -37,19 +37,15 @@ public class StudentService {
     this.studentsById = studentStore.loadStudentsById();
   }
 
-  private List<Student> getStudents() {
-    return new ArrayList<>(studentsById.values());
-  }
-
   public List<Student> findAll() {
-    return new ArrayList<>(getStudents());
+    return new ArrayList<>(studentsById.values());
   }
 
   public List<Student> findByName(String keyword) {
     validator.validateStudentName(keyword);
     String lowerKeyword = keyword.toLowerCase().trim();
 
-    return getStudents().stream()
+    return studentsById.values().stream()
         .filter(student -> student.getFullName().toLowerCase().contains(lowerKeyword))
         .collect(Collectors.toList());
   }
@@ -57,12 +53,12 @@ public class StudentService {
   public Student addStudent(String id, String name, String gender) {
     validator.validateStudentData(id, name, gender);
 
-    String cleanId = normalizeStudentId(id);
-    String cleanName = normalizeStudentName(name);
+    String cleanId = normalizer.normalizeStudentId(id);
+    String cleanName = normalizer.normalizeStudentName(name);
     String cleanGender = normalizer.normalizeGender(gender);
     Major major = normalizer.extractMajorFromId(cleanId);
 
-    if (findById(cleanId) != null) {
+    if (studentsById.containsKey(cleanId)) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
 
@@ -78,13 +74,13 @@ public class StudentService {
   }
 
   public Student deleteStudentById(String idToDelete) {
-    validator.validateExistingStudentId(idToDelete);
+    validator.validateStudentIdFormat(idToDelete);
 
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
-    String cleanId = normalizeStudentId(idToDelete);
+    String cleanId = normalizer.normalizeStudentId(idToDelete);
     Student deletedStudent = studentsById.remove(cleanId);
 
     if (deletedStudent != null) {
@@ -96,7 +92,7 @@ public class StudentService {
 
   public Student findById(String id) {
     validator.validateExistingStudentId(id);
-    return studentsById.get(normalizeStudentId(id));
+    return studentsById.get(normalizer.normalizeStudentId(id));
   }
 
   public void flushPendingChanges() {
@@ -105,14 +101,6 @@ public class StudentService {
 
   private void markStudentChanged() {
     studentStore.markChanged(studentsById);
-  }
-
-  private String normalizeStudentId(String id) {
-    return normalizer.normalizeStudentId(id);
-  }
-
-  private String normalizeStudentName(String name) {
-    return normalizer.normalizeStudentName(name);
   }
 
 }

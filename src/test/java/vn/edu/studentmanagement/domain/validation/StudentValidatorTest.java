@@ -33,6 +33,17 @@ class StudentValidatorTest {
   }
 
   @Test
+  void validateStudentIdFormatUsesStandardStudentIdRules() {
+    assertDoesNotThrow(() -> validator.validateStudentIdFormat("ITITIU21001"));
+
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> validator.validateStudentIdFormat("SV001"));
+
+    assertEquals("ID must be exactly 11 characters.", exception.getMessage());
+  }
+
+  @Test
   void validateExistingStudentIdOnlyRequiresNonBlankValue() {
     assertDoesNotThrow(() -> validator.validateExistingStudentId("SV001"));
 
