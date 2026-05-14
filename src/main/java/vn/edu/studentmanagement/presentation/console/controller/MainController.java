@@ -2,26 +2,29 @@ package vn.edu.studentmanagement.presentation.console.controller;
 
 import java.util.Objects;
 
+import vn.edu.studentmanagement.application.StudentManagementService;
 import vn.edu.studentmanagement.application.schedule.ScheduleService;
 import vn.edu.studentmanagement.application.student.StudentService;
-import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
 import vn.edu.studentmanagement.presentation.console.io.TerminalController;
 import vn.edu.studentmanagement.presentation.console.menu.MainMenuView;
 
 public class MainController {
-  private final StudentService studentService;
-  private final ScheduleService scheduleService;
-  private final CourseCatalog courseCatalog;
+  private final StudentManagementService studentManagementService;
+  private final StudentController studentController;
+  private final ScheduleController scheduleController;
 
   public MainController(
       StudentService studentService,
       ScheduleService scheduleService,
-      CourseCatalog courseCatalog) {
-    this.studentService = Objects.requireNonNull(studentService);
-    this.scheduleService = Objects.requireNonNull(scheduleService);
-    this.courseCatalog = Objects.requireNonNull(courseCatalog);
+      StudentManagementService studentManagementService) {
+    Objects.requireNonNull(studentService);
+    Objects.requireNonNull(scheduleService);
+    this.studentManagementService = Objects.requireNonNull(studentManagementService);
+
+    this.studentController = new StudentController(studentService, studentManagementService);
+    this.scheduleController = new ScheduleController(studentService, scheduleService);
   }
 
   public void run() {
@@ -39,8 +42,8 @@ public class MainController {
       }
 
       switch (choice) {
-        case "1" -> StudentController.run(studentService, scheduleService);
-        case "2" -> ScheduleController.run(studentService, courseCatalog, scheduleService);
+        case "1" -> studentController.run();
+        case "2" -> scheduleController.run();
         default -> {
           ConsoleMessagePrinter.warning("Invalid choice. Please select 1, 2, 0, or q.\n");
           ConsoleIO.print("Press Enter to continue...");
@@ -52,8 +55,7 @@ public class MainController {
 
   private boolean flushPendingChanges() {
     try {
-      studentService.flushPendingChanges();
-      scheduleService.flushPendingChanges();
+      studentManagementService.flushPendingChanges();
       return true;
     } catch (IllegalStateException e) {
       ConsoleMessagePrinter.error(e);

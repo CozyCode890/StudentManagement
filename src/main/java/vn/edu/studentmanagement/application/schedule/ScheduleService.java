@@ -46,6 +46,24 @@ public class ScheduleService {
     }
   }
 
+  public static class AvailableCourses {
+    private final List<Course> generalCourses;
+    private final List<Course> majorCourses;
+
+    public AvailableCourses(List<Course> generalCourses, List<Course> majorCourses) {
+      this.generalCourses = List.copyOf(generalCourses);
+      this.majorCourses = List.copyOf(majorCourses);
+    }
+
+    public List<Course> getGeneralCourses() {
+      return generalCourses;
+    }
+
+    public List<Course> getMajorCourses() {
+      return majorCourses;
+    }
+  }
+
   public ScheduleService(
       StudentService studentService,
       CourseCatalog courseCatalog,
@@ -150,6 +168,19 @@ public class ScheduleService {
 
     markScheduleChanged();
     return true;
+  }
+
+  public AvailableCourses getAvailableCoursesForStudent(String studentId) {
+    studentValidator.validateExistingStudentId(studentId);
+
+    Student student = studentService.findById(studentId);
+    if (student == null) {
+      throw new IllegalArgumentException("ID not found");
+    }
+
+    return new AvailableCourses(
+        courseCatalog.getGeneralCourses(),
+        courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
   }
 
   public void flushPendingChanges() {

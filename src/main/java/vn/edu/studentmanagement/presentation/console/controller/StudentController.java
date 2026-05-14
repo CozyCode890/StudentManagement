@@ -2,9 +2,9 @@ package vn.edu.studentmanagement.presentation.console.controller;
 
 import java.util.Objects;
 
-import vn.edu.studentmanagement.domain.model.Student;
-import vn.edu.studentmanagement.application.schedule.ScheduleService;
+import vn.edu.studentmanagement.application.StudentManagementService;
 import vn.edu.studentmanagement.application.student.StudentService;
+import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
@@ -14,16 +14,19 @@ import vn.edu.studentmanagement.presentation.console.menu.StudentMenuView;
 import vn.edu.studentmanagement.presentation.console.view.StudentView;
 
 public class StudentController {
-  private static StudentService studentService;
-  private static ScheduleService scheduleService;
-  private static StudentListController studentListController;
-  private static final StudentMenuView MENU_VIEW = new StudentMenuView();
-  private static final StudentView STUDENT_VIEW = new StudentView();
+  private StudentService studentService;
+  private StudentListController studentListController;
+  private final StudentManagementService studentManagementService;
+  private final StudentMenuView MENU_VIEW = new StudentMenuView();
+  private final StudentView STUDENT_VIEW = new StudentView();
 
-  public static void run(StudentService sharedStudentService, ScheduleService sharedScheduleService) {
-    studentService = Objects.requireNonNull(sharedStudentService);
-    scheduleService = Objects.requireNonNull(sharedScheduleService);
-    studentListController = new StudentListController(studentService);
+  public StudentController(StudentService studentService, StudentManagementService studentManagementService) {
+    this.studentService = Objects.requireNonNull(studentService);
+    this.studentManagementService = Objects.requireNonNull(studentManagementService);
+    this.studentListController = new StudentListController(studentService);
+  }
+
+  public void run() {
     while (true) {
       TerminalController.clearScreen();
 
@@ -53,7 +56,7 @@ public class StudentController {
     }
   }
 
-  public static void addStudent() {
+  public void addStudent() {
     String id = ConsoleIO.prompt("\nEnter ID: ");
     String name = ConsoleIO.prompt("\nEnter name: ");
     String gender = ConsoleIO.prompt("Enter gender (Male/Female/M/F): ");
@@ -66,25 +69,24 @@ public class StudentController {
     }
   }
 
-  public static void deleteStudentById() {
+  private void deleteStudentById() {
     String input = ConsolePrompt.trimmed("\nEnter ID to delete: ");
 
     try {
-      Student deletedStudent = studentService.deleteStudentById(input);
-      boolean removedSchedule = scheduleService.removeScheduleByStudentId(input);
-      STUDENT_VIEW.printDeleted(deletedStudent);
-      if (removedSchedule) {
-        STUDENT_VIEW.printScheduleRemoved(input);
+      StudentManagementService.DeleteStudentResult result = studentManagementService.deleteStudentById(input);
+
+      STUDENT_VIEW.printDeleted(result.getStudent());
+      if (result.isScheduleRemoved()) {
+        STUDENT_VIEW.printScheduleRemoved(result.getStudent().getId());
       }
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
     }
   }
 
-  private static boolean flushPendingStudentChanges() {
+  private boolean flushPendingStudentChanges() {
     try {
-      studentService.flushPendingChanges();
-      scheduleService.flushPendingChanges();
+      studentManagementService.flushPendingChanges();
       return true;
     } catch (IllegalStateException e) {
       ConsoleMessagePrinter.error(e);

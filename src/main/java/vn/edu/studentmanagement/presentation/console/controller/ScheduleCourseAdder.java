@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.application.schedule.ScheduleService;
-import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePrompt;
@@ -12,17 +11,14 @@ import vn.edu.studentmanagement.presentation.console.view.ScheduleView;
 
 class ScheduleCourseAdder {
   private final ScheduleService scheduleService;
-  private final CourseCatalog courseCatalog;
   private final ScheduleStudentSelector studentSelector;
   private final ScheduleView scheduleView;
 
   ScheduleCourseAdder(
       ScheduleService scheduleService,
-      CourseCatalog courseCatalog,
       ScheduleStudentSelector studentSelector,
       ScheduleView scheduleView) {
     this.scheduleService = Objects.requireNonNull(scheduleService);
-    this.courseCatalog = Objects.requireNonNull(courseCatalog);
     this.studentSelector = Objects.requireNonNull(studentSelector);
     this.scheduleView = Objects.requireNonNull(scheduleView);
   }
@@ -35,10 +31,12 @@ class ScheduleCourseAdder {
     }
 
     try {
+      ScheduleService.AvailableCourses courses = scheduleService.getAvailableCoursesForStudent(student.getId());
+
       scheduleView.printAvailableCourses(
           student,
-          courseCatalog.getGeneralCourses(),
-          courseCatalog.getMajorCoursesByStudentMajor(student.getMajor()));
+          courses.getGeneralCourses(),
+          courses.getMajorCourses());
       addCoursesUntilBack(student);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
