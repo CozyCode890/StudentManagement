@@ -182,18 +182,18 @@ public class ScheduleService {
     scheduleStore.flushPendingChanges(schedulesByStudentId);
   }
 
-  public Schedule findScheduleByStudentId(String studentId) {
+  public List<Course> findCoursesByStudentId(String studentId) {
     studentValidator.validateExistingStudentId(studentId);
     String sid = studentNormalizer.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
     if (schedule == null) {
       schedule = new Schedule(sid);
     }
-    return schedule;
+    return schedule.getSelectedCourses();
   }
 
   public List<Course> getScheduleSortedByDayThenStart(String studentId) {
-    List<Course> courses = new ArrayList<>(findScheduleByStudentId(studentId).getSelectedCourses());
+    List<Course> courses = new ArrayList<>(findCoursesByStudentId(studentId));
     courses.sort(
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));

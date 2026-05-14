@@ -54,7 +54,7 @@ public class CourseCatalog {
     tmp.put("DS202", new Course("DS202", "Statistics", CourseType.MAJOR, Major.DS, friAfternoon));
     tmp.put("DS203", new Course("DS203", "Data Mining", CourseType.MAJOR, Major.DS, satAfternoon));
 
-    byCourseId = Map.copyOf(tmp);
+    byCourseId = Collections.unmodifiableMap(new LinkedHashMap<>(tmp));
   }
 
   public Course findByCourseId(String courseId) {
