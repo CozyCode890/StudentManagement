@@ -5,7 +5,6 @@ import java.util.Objects;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Schedule;
-import vn.edu.studentmanagement.domain.model.TimeSlot;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 
 public class ScheduleValidator {
@@ -38,15 +37,6 @@ public class ScheduleValidator {
 
     if (schedule.hasConflictWith(selectedCourse)) {
       throw new IllegalArgumentException("Conflict time");
-
     }
-
-    if (!isValidTimeSlot(selectedCourse.getTimeSlot())) {
-      throw new IllegalArgumentException("Course scheduled outside valid time slots");
-    }
-  }
-
-  private boolean isValidTimeSlot(TimeSlot timeSlot) {
-    return timeSlot != null && courseCatalog.getValidTimeSlots().contains(timeSlot);
   }
 }
