@@ -3,17 +3,17 @@ package vn.edu.studentmanagement.application.schedule;
 import java.util.Map;
 import java.util.Objects;
 
-import vn.edu.studentmanagement.application.store.BufferedCsvStore;
+import vn.edu.studentmanagement.application.store.BufferedRepositoryStore;
+import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Schedule;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
-import vn.edu.studentmanagement.infrastructure.csv.CsvRepository;
 
 class ScheduleStore {
-  private final BufferedCsvStore<Schedule> store;
+  private final BufferedRepositoryStore<Schedule> store;
 
-  ScheduleStore(CsvRepository<Schedule> scheduleRepository, StudentNormalizer studentNormalizer) {
+  ScheduleStore(Repository<Schedule> scheduleRepository, StudentNormalizer studentNormalizer) {
     StudentNormalizer checkedNormalizer = Objects.requireNonNull(studentNormalizer);
-    this.store = new BufferedCsvStore<>(
+    this.store = new BufferedRepositoryStore<>(
         Objects.requireNonNull(scheduleRepository),
         schedule -> normalizeStudentId(schedule, checkedNormalizer),
         "schedules");

@@ -10,25 +10,26 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.application.store.RepositoryException;
+import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Gender;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Student;
 
-public class CsvStudentRepository implements CsvRepository<Student> {
+public class CsvStudentRepository implements Repository<Student> {
   public static final Path CSV_PATH = Paths.get(
       System.getProperty("user.home"),
       ".student-manager",
       "students.csv");
 
-  @Override
-  public void ensureFileExists() {
+  private void ensureFileExists() {
     try {
       Files.createDirectories(CSV_PATH.getParent());
       if (Files.notExists(CSV_PATH)) {
         Files.createFile(CSV_PATH);
       }
     } catch (IOException e) {
-      throw new StorageException("Failed to create/open student CSV file.", e);
+      throw new RepositoryException("Failed to create/open student CSV file.", e);
     }
   }
 
@@ -58,7 +59,7 @@ public class CsvStudentRepository implements CsvRepository<Student> {
       }
       return students;
     } catch (IOException e) {
-      throw new StorageException("Failed to read student CSV file.", e);
+      throw new RepositoryException("Failed to read student CSV file.", e);
     }
   }
 
@@ -72,24 +73,8 @@ public class CsvStudentRepository implements CsvRepository<Student> {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
-      throw new StorageException("Failed to write student CSV file.", e);
+      throw new RepositoryException("Failed to write student CSV file.", e);
     }
   }
 
-  @Override
-  public void append(Student student) {
-    ensureFileExists();
-    String line = student.getId() + "," + student.getFullName() + "," + student.getMajor() + "," + student.getGender()
-        + System.lineSeparator();
-    try {
-      Files.writeString(
-          CSV_PATH,
-          line,
-          StandardCharsets.UTF_8,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      throw new StorageException("Failed to append student CSV file.", e);
-    }
-  }
 }

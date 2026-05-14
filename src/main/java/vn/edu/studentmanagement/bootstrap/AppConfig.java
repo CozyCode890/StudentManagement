@@ -12,8 +12,6 @@ public class AppConfig {
     CsvStudentRepository studentRepository = new CsvStudentRepository();
     CourseCatalog courseCatalog = new CourseCatalog();
     CsvScheduleRepository scheduleRepository = new CsvScheduleRepository(courseCatalog);
-    studentRepository.ensureFileExists();
-    scheduleRepository.ensureFileExists();
 
     StudentService studentService = new StudentService(studentRepository);
     ScheduleService scheduleService = new ScheduleService(studentService, courseCatalog, scheduleRepository);

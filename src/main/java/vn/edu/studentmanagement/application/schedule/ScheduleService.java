@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.application.student.StudentService;
+import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
 import vn.edu.studentmanagement.domain.model.Student;
@@ -16,8 +17,6 @@ import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.domain.validation.ScheduleValidator;
 import vn.edu.studentmanagement.domain.validation.StudentValidator;
-import vn.edu.studentmanagement.infrastructure.csv.CsvRepository;
-import vn.edu.studentmanagement.infrastructure.csv.CsvScheduleRepository;
 
 public class ScheduleService {
   private final StudentService studentService;
@@ -47,14 +46,10 @@ public class ScheduleService {
     }
   }
 
-  public ScheduleService(StudentService studentService, CourseCatalog courseCatalog) {
-    this(studentService, courseCatalog, new CsvScheduleRepository(courseCatalog));
-  }
-
   public ScheduleService(
       StudentService studentService,
       CourseCatalog courseCatalog,
-      CsvRepository<Schedule> scheduleRepository) {
+      Repository<Schedule> scheduleRepository) {
     this(studentService, new StudentNormalizer(), courseCatalog, scheduleRepository);
   }
 
@@ -62,7 +57,7 @@ public class ScheduleService {
       StudentService studentService,
       StudentNormalizer studentNormalizer,
       CourseCatalog courseCatalog,
-      CsvRepository<Schedule> scheduleRepository) {
+      Repository<Schedule> scheduleRepository) {
     this(
         studentService,
         new StudentValidator(studentNormalizer),
@@ -76,7 +71,7 @@ public class ScheduleService {
       StudentValidator studentValidator,
       StudentNormalizer studentNormalizer,
       CourseCatalog courseCatalog,
-      CsvRepository<Schedule> scheduleRepository) {
+      Repository<Schedule> scheduleRepository) {
     this.studentService = Objects.requireNonNull(studentService);
     this.studentValidator = Objects.requireNonNull(studentValidator);
     this.studentNormalizer = Objects.requireNonNull(studentNormalizer);

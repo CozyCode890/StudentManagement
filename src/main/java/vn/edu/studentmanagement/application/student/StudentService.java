@@ -6,13 +6,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Gender;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.domain.validation.StudentValidator;
-import vn.edu.studentmanagement.infrastructure.csv.CsvRepository;
-import vn.edu.studentmanagement.infrastructure.csv.CsvStudentRepository;
 
 public class StudentService {
   private final StudentValidator validator;
@@ -20,22 +19,18 @@ public class StudentService {
   private final StudentStore studentStore;
   private final Map<String, Student> studentsById;
 
-  public StudentService() {
-    this(new CsvStudentRepository());
-  }
-
-  public StudentService(CsvRepository<Student> studentRepository) {
+  public StudentService(Repository<Student> studentRepository) {
     this(new StudentNormalizer(), Objects.requireNonNull(studentRepository));
   }
 
-  private StudentService(StudentNormalizer normalizer, CsvRepository<Student> studentRepository) {
+  private StudentService(StudentNormalizer normalizer, Repository<Student> studentRepository) {
     this(new StudentValidator(normalizer), normalizer, studentRepository);
   }
 
   public StudentService(
       StudentValidator validator,
       StudentNormalizer normalizer,
-      CsvRepository<Student> studentRepository) {
+      Repository<Student> studentRepository) {
     this.validator = Objects.requireNonNull(validator);
     this.normalizer = Objects.requireNonNull(normalizer);
     this.studentStore = new StudentStore(Objects.requireNonNull(studentRepository), normalizer);

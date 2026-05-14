@@ -14,11 +14,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.application.store.Repository;
+import vn.edu.studentmanagement.application.store.RepositoryException;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
 
-public class CsvScheduleRepository implements CsvRepository<Schedule> {
+public class CsvScheduleRepository implements Repository<Schedule> {
   public static final Path CSV_PATH = Paths.get(
       System.getProperty("user.home"),
       ".student-manager",
@@ -30,15 +32,14 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
     this.courseCatalog = Objects.requireNonNull(courseCatalog);
   }
 
-  @Override
-  public void ensureFileExists() {
+  private void ensureFileExists() {
     try {
       Files.createDirectories(CSV_PATH.getParent());
       if (Files.notExists(CSV_PATH)) {
         Files.createFile(CSV_PATH);
       }
     } catch (IOException e) {
-      throw new StorageException("Failed to create/open schedule CSV file.", e);
+      throw new RepositoryException("Failed to create/open schedule CSV file.", e);
     }
   }
 
@@ -76,9 +77,9 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
 
       return new ArrayList<>(schedulesByStudentId.values());
     } catch (IOException e) {
-      throw new StorageException("Failed to read schedule CSV file.", e);
+      throw new RepositoryException("Failed to read schedule CSV file.", e);
     } catch (IllegalStateException e) {
-      throw new StorageException("Failed to build schedule from CSV file.", e);
+      throw new RepositoryException("Failed to build schedule from CSV file.", e);
     }
   }
 
@@ -94,30 +95,7 @@ public class CsvScheduleRepository implements CsvRepository<Schedule> {
       Files.write(CSV_PATH, lines, StandardCharsets.UTF_8,
           StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.WRITE);
     } catch (IOException e) {
-      throw new StorageException("Failed to write schedule CSV file.", e);
-    }
-  }
-
-  @Override
-  public void append(Schedule schedule) {
-    ensureFileExists();
-    List<String> lines = schedule.getSelectedCourses().stream()
-        .map(course -> schedule.getStudentId() + "," + course.getCourseId())
-        .collect(Collectors.toList());
-
-    if (lines.isEmpty()) {
-      return;
-    }
-
-    try {
-      Files.write(
-          CSV_PATH,
-          lines,
-          StandardCharsets.UTF_8,
-          StandardOpenOption.CREATE,
-          StandardOpenOption.APPEND);
-    } catch (IOException e) {
-      throw new StorageException("Failed to append schedule CSV file.", e);
+      throw new RepositoryException("Failed to write schedule CSV file.", e);
     }
   }
 
