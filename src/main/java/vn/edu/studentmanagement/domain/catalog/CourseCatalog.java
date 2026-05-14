@@ -93,12 +93,4 @@ public class CourseCatalog {
     return result;
   }
 
-  public List<TimeSlot> getValidTimeSlots() {
-    List<TimeSlot> result = new ArrayList<>();
-    for (Course course : byCourseId.values()) {
-      result.add(course.getTimeSlot());
-    }
-    return result;
-  }
-
 }

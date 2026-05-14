@@ -33,12 +33,23 @@ class StudentValidatorTest {
   }
 
   @Test
-  void validateExistingStudentIdOnlyRequiresNonBlankValue() {
-    assertDoesNotThrow(() -> validator.validateExistingStudentId("SV001"));
+  void validateStudentIdFormatUsesStandardStudentIdRules() {
+    assertDoesNotThrow(() -> validator.validateStudentIdFormat("ITITIU21001"));
 
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
-        () -> validator.validateExistingStudentId(" "));
+        () -> validator.validateStudentIdFormat("SV001"));
+
+    assertEquals("ID must be exactly 11 characters.", exception.getMessage());
+  }
+
+  @Test
+  void validateRequiredStudentIdOnlyRequiresNonBlankValue() {
+    assertDoesNotThrow(() -> validator.validateRequiredStudentId("SV001"));
+
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> validator.validateRequiredStudentId(" "));
 
     assertEquals("ID cannot be empty.", exception.getMessage());
   }

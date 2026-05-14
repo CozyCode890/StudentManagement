@@ -12,18 +12,16 @@ import vn.edu.studentmanagement.presentation.console.menu.ScheduleMenuView;
 import vn.edu.studentmanagement.presentation.console.view.ScheduleView;
 
 public class ScheduleController {
-  private final StudentService studentService;
   private final ScheduleService scheduleService;
   private final ScheduleView scheduleView;
   private final ScheduleStudentSelector studentSelector;
   private final ScheduleViewer scheduleViewer;
   private final ScheduleCourseAdder courseAdder;
   private final ScheduleCourseRemover courseRemover;
-  private final ScheduleChangeFlusher changeFlusher;
   private final ScheduleMenuView menuView;
 
   public ScheduleController(StudentService sharedStudentService, ScheduleService sharedScheduleService) {
-    this.studentService = Objects.requireNonNull(sharedStudentService);
+    StudentService studentService = Objects.requireNonNull(sharedStudentService);
     this.scheduleService = Objects.requireNonNull(sharedScheduleService);
 
     this.scheduleView = new ScheduleView();
@@ -33,7 +31,6 @@ public class ScheduleController {
         studentSelector,
         scheduleView);
     this.courseRemover = new ScheduleCourseRemover(scheduleService, studentSelector);
-    this.changeFlusher = new ScheduleChangeFlusher(scheduleService);
     this.menuView = new ScheduleMenuView();
   }
 
@@ -57,7 +54,7 @@ public class ScheduleController {
           ConsolePause.waitForEnter();
         }
         case "0" -> {
-          if (changeFlusher.flush()) {
+          if (flushPendingChanges()) {
             return;
           }
         }
@@ -66,6 +63,17 @@ public class ScheduleController {
           ConsolePause.waitForEnter();
         }
       }
+    }
+  }
+
+  private boolean flushPendingChanges() {
+    try {
+      scheduleService.flushPendingChanges();
+      return true;
+    } catch (IllegalStateException e) {
+      ConsoleMessagePrinter.error(e);
+      ConsolePause.waitForEnter();
+      return false;
     }
   }
 }

@@ -46,8 +46,11 @@ public class ConsoleTable {
   }
 
   private static String buildSeparator(List<Integer> widths) {
-    int[] widthValues = widths.stream().mapToInt(Integer::intValue).toArray();
-    return TableFormatter.buildSeparator(widthValues);
+    StringBuilder line = new StringBuilder("+");
+    for (int width : widths) {
+      line.append("-".repeat(width + 2)).append("+");
+    }
+    return line.toString();
   }
 
   private static void printRow(List<String> values, List<Integer> widths) {
@@ -64,7 +67,8 @@ public class ConsoleTable {
     if (index >= values.size()) {
       return "";
     }
-    return TableFormatter.safeText(values.get(index));
+    String value = values.get(index);
+    return value == null ? "" : value;
   }
 
   private static String padRight(String value, int width) {

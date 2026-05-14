@@ -51,11 +51,11 @@ class ScheduleCourseAdder {
         return;
       }
 
-      ScheduleService.AddCourseResult result = scheduleService.addCourse(student.getId(), courseId);
-      if (result.isSuccess()) {
-        ConsoleMessagePrinter.success(result.getMessage());
-      } else {
-        ConsoleMessagePrinter.error(result.getMessage());
+      try {
+        scheduleService.addCourse(student.getId(), courseId);
+        ConsoleMessagePrinter.success("Added successfully");
+      } catch (IllegalArgumentException | IllegalStateException e) {
+        ConsoleMessagePrinter.error(e);
       }
     }
   }
