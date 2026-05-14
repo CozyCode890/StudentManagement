@@ -41,12 +41,8 @@ public class StudentService {
     return new ArrayList<>(studentsById.values());
   }
 
-  public List<Student> displayAll() {
-    return new ArrayList<>(getStudents());
-  }
-
   public List<Student> findAll() {
-    return displayAll();
+    return new ArrayList<>(getStudents());
   }
 
   public List<Student> findByName(String keyword) {
@@ -58,10 +54,6 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  public void validateStudentName(String name) {
-    validator.validateStudentName(name);
-  }
-
   public Student addStudent(String id, String name, String gender) {
     validator.validateStudentData(id, name, gender);
 
@@ -70,7 +62,7 @@ public class StudentService {
     String cleanGender = normalizer.normalizeGender(gender);
     Major major = normalizer.extractMajorFromId(cleanId);
 
-    if (filterById(cleanId) != null) {
+    if (findById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
 
@@ -107,18 +99,6 @@ public class StudentService {
     return studentsById.get(normalizeStudentId(id));
   }
 
-  public Student filterById(String id) {
-    return findById(id);
-  }
-
-  public String normalizeStudentId(String id) {
-    return normalizer.normalizeStudentId(id);
-  }
-
-  public String normalizeStudentName(String name) {
-    return normalizer.normalizeStudentName(name);
-  }
-
   public void flushPendingChanges() {
     studentStore.flushPendingChanges(studentsById);
   }
@@ -126,4 +106,13 @@ public class StudentService {
   private void markStudentChanged() {
     studentStore.markChanged(studentsById);
   }
+
+  private String normalizeStudentId(String id) {
+    return normalizer.normalizeStudentId(id);
+  }
+
+  private String normalizeStudentName(String name) {
+    return normalizer.normalizeStudentName(name);
+  }
+
 }

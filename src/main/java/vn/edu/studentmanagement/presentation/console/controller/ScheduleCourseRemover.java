@@ -26,7 +26,7 @@ class ScheduleCourseRemover {
     }
 
     try {
-      List<Course> currentCourses = scheduleService.getSchedule(student.getId()).getSelectedCourses();
+      List<Course> currentCourses = scheduleService.findScheduleByStudentId(student.getId()).getSelectedCourses();
       if (currentCourses.isEmpty()) {
         ConsoleMessagePrinter.warning("This student has no courses to remove.");
         return;

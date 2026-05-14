@@ -106,7 +106,7 @@ public class ScheduleService {
       String sid = studentNormalizer.normalizeStudentId(studentId);
       String cid = normalizeCourseId(courseId);
 
-      Student student = studentService.filterById(sid);
+      Student student = studentService.findById(sid);
       if (student == null) {
         throw new IllegalArgumentException("ID not found");
       }
@@ -182,7 +182,7 @@ public class ScheduleService {
     scheduleStore.flushPendingChanges(schedulesByStudentId);
   }
 
-  public Schedule getSchedule(String studentId) {
+  public Schedule findScheduleByStudentId(String studentId) {
     studentValidator.validateExistingStudentId(studentId);
     String sid = studentNormalizer.normalizeStudentId(studentId);
     Schedule schedule = schedulesByStudentId.get(sid);
@@ -192,16 +192,8 @@ public class ScheduleService {
     return schedule;
   }
 
-  public Schedule filterScheduleByStudentId(String studentId) {
-    return getSchedule(studentId);
-  }
-
   public List<Course> getScheduleSortedByDayThenStart(String studentId) {
-    return filterScheduleByStudentIdSortedByDayThenStart(studentId);
-  }
-
-  public List<Course> filterScheduleByStudentIdSortedByDayThenStart(String studentId) {
-    List<Course> courses = new ArrayList<>(filterScheduleByStudentId(studentId).getSelectedCourses());
+    List<Course> courses = new ArrayList<>(findScheduleByStudentId(studentId).getSelectedCourses());
     courses.sort(
         Comparator.comparing((Course c) -> c.getTimeSlot().getDay().getValue())
             .thenComparing(c -> c.getTimeSlot().getStart()));
