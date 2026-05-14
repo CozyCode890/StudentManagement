@@ -24,7 +24,7 @@ public class StudentService {
   }
 
   private StudentService(StudentNormalizer normalizer, Repository<Student> studentRepository) {
-    this(new StudentValidator(normalizer), normalizer, studentRepository);
+    this(new StudentValidator(), normalizer, studentRepository);
   }
 
   public StudentService(
@@ -51,11 +51,11 @@ public class StudentService {
   }
 
   public Student addStudent(String id, String name, String gender) {
-    validator.validateStudentData(id, name, gender);
-
     String cleanId = normalizer.normalizeStudentId(id);
     String cleanName = normalizer.normalizeStudentName(name);
     String cleanGender = normalizer.normalizeGender(gender);
+
+    validator.validateStudentData(cleanId, cleanName, cleanGender);
     Major major = normalizer.extractMajorFromId(cleanId);
 
     if (studentsById.containsKey(cleanId)) {
@@ -74,13 +74,13 @@ public class StudentService {
   }
 
   public Student deleteStudentById(String idToDelete) {
-    validator.validateStudentIdFormat(idToDelete);
+    String cleanId = normalizer.normalizeStudentId(idToDelete);
+    validator.validateStudentIdFormat(cleanId);
 
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
-    String cleanId = normalizer.normalizeStudentId(idToDelete);
     Student deletedStudent = studentsById.remove(cleanId);
 
     if (deletedStudent != null) {

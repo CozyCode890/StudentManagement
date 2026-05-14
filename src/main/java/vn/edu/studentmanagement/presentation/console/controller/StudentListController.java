@@ -40,7 +40,6 @@ public class StudentListController {
       } else if (choice.equals("2")) {
         searchByName();
       } else {
-        TerminalController.clearScreen();
         ConsoleMessagePrinter.warning("Invalid choice.");
         ConsolePause.waitForEnter();
       }

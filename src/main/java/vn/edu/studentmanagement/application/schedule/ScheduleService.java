@@ -60,7 +60,7 @@ public class ScheduleService {
       Repository<Schedule> scheduleRepository) {
     this(
         studentService,
-        new StudentValidator(studentNormalizer),
+        new StudentValidator(),
         studentNormalizer,
         courseCatalog,
         scheduleRepository);
