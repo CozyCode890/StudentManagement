@@ -88,17 +88,6 @@ public class CourseCatalog {
     return result;
   }
 
-  public List<Course> getAvailableCoursesForStudentMajor(Major major) {
-    List<Course> all = new ArrayList<>();
-    for (Course course : byCourseId.values()) {
-      if (isEligibleForMajor(course, major)) {
-        all.add(course);
-      }
-    }
-    return all;
-  }
-
-
   public List<TimeSlot> getValidTimeSlots() {
     List<TimeSlot> result = new ArrayList<>();
     for (Course course : byCourseId.values()) {

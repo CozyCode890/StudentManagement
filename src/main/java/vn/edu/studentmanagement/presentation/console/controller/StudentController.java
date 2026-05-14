@@ -1,6 +1,5 @@
 package vn.edu.studentmanagement.presentation.console.controller;
 
-import java.util.List;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.domain.model.Student;
@@ -8,12 +7,10 @@ import vn.edu.studentmanagement.application.schedule.ScheduleService;
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleIO;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
-import vn.edu.studentmanagement.presentation.console.io.ConsolePaginator;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePrompt;
 import vn.edu.studentmanagement.presentation.console.io.TerminalController;
 import vn.edu.studentmanagement.presentation.console.menu.StudentMenuView;
-import vn.edu.studentmanagement.presentation.console.renderer.StudentTableRenderer;
 import vn.edu.studentmanagement.presentation.console.view.StudentView;
 
 public class StudentController {
@@ -54,14 +51,6 @@ public class StudentController {
         }
       }
     }
-  }
-
-  public static void viewStudentsPaginated(List<Student> allStudents) {
-    ConsolePaginator.show(
-        allStudents,
-        10,
-        "Student list is empty.",
-        StudentTableRenderer::render);
   }
 
   public static void addStudent() {

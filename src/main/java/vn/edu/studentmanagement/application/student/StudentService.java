@@ -1,7 +1,6 @@
 package vn.edu.studentmanagement.application.student;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -55,28 +54,6 @@ public class StudentService {
     return displayAll();
   }
 
-  public List<Student> displayAllSortedById() {
-    return getStudents().stream()
-        .sorted(Comparator.comparing(Student::getId))
-        .collect(Collectors.toList());
-  }
-
-  public List<Student> filterStudents(String query) {
-    if (query == null || query.trim().isEmpty()) {
-      return displayAll();
-    }
-
-    String lowerQuery = query.toLowerCase().trim();
-
-    return getStudents().stream()
-        .filter(student ->
-            String.valueOf(student.getId()).contains(lowerQuery) ||
-            (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
-            (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
-            (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
-        .collect(Collectors.toList());
-  }
-
   public List<Student> findByName(String keyword) {
     validator.validateStudentName(keyword);
     String lowerKeyword = keyword.toLowerCase().trim();
@@ -84,16 +61,6 @@ public class StudentService {
     return getStudents().stream()
         .filter(student -> student.getFullName().toLowerCase().contains(lowerKeyword))
         .collect(Collectors.toList());
-  }
-
-  public List<Student> displayAllSortedByLastName() {
-    return getStudents().stream()
-        .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
-        .collect(Collectors.toList());
-  }
-
-  public void validateStudentId(String id) {
-    validator.validateNewStudentId(id);
   }
 
   public void validateStudentName(String name) {
