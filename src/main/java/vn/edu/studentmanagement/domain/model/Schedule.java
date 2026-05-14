@@ -34,10 +34,6 @@ public class Schedule {
     return !selectedCourses.isEmpty();
   }
 
-  public int selectedCoursesCount() {
-    return selectedCourses.size();
-  }
-
   public boolean containsCourse(String courseId) {
     return selectedCourses.stream()
         .anyMatch(course -> course.getCourseId().equals(courseId));

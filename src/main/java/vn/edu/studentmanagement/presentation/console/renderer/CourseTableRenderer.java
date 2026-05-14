@@ -24,6 +24,22 @@ public class CourseTableRenderer {
     ConsoleTable.print(List.of("ID", "Course Name", "Day", "Time"), rows);
   }
 
+  public static void renderNumberedCourses(List<Course> courses, int startStt) {
+    List<List<String>> rows = new ArrayList<>();
+    int currentStt = startStt;
+    for (Course course : courses) {
+      String time = course.getTimeSlot().getStart() + "-" + course.getTimeSlot().getEnd();
+      rows.add(Arrays.asList(
+          String.valueOf(currentStt++),
+          course.getCourseId(),
+          course.getName(),
+          String.valueOf(course.getTimeSlot().getDay()),
+          time));
+    }
+
+    ConsoleTable.print(List.of("STT", "ID", "Course Name", "Day", "Time"), rows);
+  }
+
   public static void renderDefinitions(List<Course> definitions) {
     List<List<String>> rows = new ArrayList<>();
     for (Course definition : definitions) {

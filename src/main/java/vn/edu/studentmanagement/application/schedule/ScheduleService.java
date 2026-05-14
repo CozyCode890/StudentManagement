@@ -161,6 +161,12 @@ public class ScheduleService {
     return schedule.getSelectedCourses();
   }
 
+  public boolean hasReachedCourseLimit(String studentId) {
+    Student student = studentService.findRequiredById(studentId);
+    Schedule schedule = schedulesByStudentId.get(student.getId());
+    return schedule != null && schedule.isFull();
+  }
+
   public List<Course> getScheduleSortedByDayThenStart(String studentId) {
     List<Course> courses = new ArrayList<>(findCoursesByStudentId(studentId));
     courses.sort(
