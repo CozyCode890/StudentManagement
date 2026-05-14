@@ -32,7 +32,7 @@ public class ScheduleService {
     private final List<Course> generalCourses;
     private final List<Course> majorCourses;
 
-    public AvailableCourses(List<Course> generalCourses, List<Course> majorCourses) {
+    private AvailableCourses(List<Course> generalCourses, List<Course> majorCourses) {
       this.generalCourses = List.copyOf(generalCourses);
       this.majorCourses = List.copyOf(majorCourses);
     }

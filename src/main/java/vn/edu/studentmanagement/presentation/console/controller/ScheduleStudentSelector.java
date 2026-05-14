@@ -20,7 +20,7 @@ class ScheduleStudentSelector {
 
   Student askForStudent() {
     while (true) {
-      String sid = ConsolePrompt.trimmed("Enter student ID (0 to return): ");
+      String sid = ConsolePrompt.trimmed("\nEnter student ID (0 to return): ");
       if (sid.equals("0")) {
         return null;
       }

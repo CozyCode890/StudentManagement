@@ -36,14 +36,14 @@ public class ConsolePaginator {
       System.out.println("\n--- Viewing Page " + (currentPage + 1) + " of " + totalPages + " ---");
       pageRenderer.render(allItems.subList(start, end), start + 1);
 
-      System.out.println("\n[N] Next | [P] Previous | [B] Back");
+      System.out.println("\n[N] Next | [P] Previous | [B|0] Back");
       String choice = ConsolePrompt.upperTrimmed("Action: ");
 
       if (choice.equals("N") && currentPage < totalPages - 1) {
         currentPage++;
       } else if (choice.equals("P") && currentPage > 0) {
         currentPage--;
-      } else if (choice.equals("B")) {
+      } else if (choice.equals("B") || choice.equals("0")) {
         break;
       } else {
         feedback = "Invalid choice or no more pages.";
