@@ -30,13 +30,13 @@ class ScheduleCourseAdder {
     }
 
     try {
-      ScheduleService.AvailableCourses courses = scheduleService.getAvailableCoursesForStudent(student.getId());
+      ScheduleService.AvailableCourses courses = scheduleService.getAvailableCoursesForStudent(student);
 
       scheduleView.printAvailableCourses(
           student,
           courses.getGeneralCourses(),
           courses.getMajorCourses());
-      if (scheduleService.hasReachedCourseLimit(student.getId())) {
+      if (scheduleService.hasReachedCourseLimit(student)) {
         ConsoleMessagePrinter.warning("This student has reached the maximum number of courses.");
         ConsolePause.waitForEnter();
         return;
@@ -56,9 +56,9 @@ class ScheduleCourseAdder {
       }
 
       try {
-        scheduleService.addCourse(student.getId(), courseId);
+        scheduleService.addCourse(student, courseId);
         ConsoleMessagePrinter.success("Added successfully");
-        if (scheduleService.hasReachedCourseLimit(student.getId())) {
+        if (scheduleService.hasReachedCourseLimit(student)) {
           ConsoleMessagePrinter.warning("This student has reached the maximum number of courses.");
           ConsolePause.waitForEnter();
           return;

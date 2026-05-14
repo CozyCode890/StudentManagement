@@ -44,6 +44,15 @@ class StudentValidatorTest {
   }
 
   @Test
+  void validateStudentIdFormatRequiresNormalizedId() {
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> validator.validateStudentIdFormat("ititiu21001"));
+
+    assertEquals("ID must start with IT.", exception.getMessage());
+  }
+
+  @Test
   void validateRequiredStudentIdOnlyRequiresNonBlankValue() {
     assertDoesNotThrow(() -> validator.validateRequiredStudentId("SV001"));
 
@@ -68,6 +77,15 @@ class StudentValidatorTest {
     IllegalArgumentException exception = assertThrows(
         IllegalArgumentException.class,
         () -> validator.validateGender("Unknown"));
+
+    assertEquals("Gender must be 'Male', 'Female', 'M', or 'F'.", exception.getMessage());
+  }
+
+  @Test
+  void validateGenderRequiresNormalizedGender() {
+    IllegalArgumentException exception = assertThrows(
+        IllegalArgumentException.class,
+        () -> validator.validateGender("Male"));
 
     assertEquals("Gender must be 'Male', 'Female', 'M', or 'F'.", exception.getMessage());
   }

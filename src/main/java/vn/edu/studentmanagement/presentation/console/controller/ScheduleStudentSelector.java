@@ -3,6 +3,7 @@ package vn.edu.studentmanagement.presentation.console.controller;
 import java.util.Objects;
 
 import vn.edu.studentmanagement.domain.model.Student;
+import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.presentation.console.io.ConsoleMessagePrinter;
 import vn.edu.studentmanagement.presentation.console.io.ConsolePause;
@@ -11,10 +12,12 @@ import vn.edu.studentmanagement.domain.validation.StudentValidator;
 
 class ScheduleStudentSelector {
   private final StudentService studentService;
+  private final StudentNormalizer studentNormalizer;
   private final StudentValidator studentValidator;
 
   ScheduleStudentSelector(StudentService studentService) {
     this.studentService = Objects.requireNonNull(studentService);
+    this.studentNormalizer = new StudentNormalizer();
     this.studentValidator = new StudentValidator();
   }
 
@@ -26,10 +29,11 @@ class ScheduleStudentSelector {
       }
 
       try {
-        studentValidator.validateStudentIdFormat(sid);
-        Student student = studentService.findById(sid);
+        String cleanSid = studentNormalizer.normalizeStudentId(sid);
+        studentValidator.validateStudentIdFormat(cleanSid);
+        Student student = studentService.findById(cleanSid);
         if (student == null) {
-          ConsoleMessagePrinter.warning("Student not found with ID: " + sid);
+          ConsoleMessagePrinter.warning("Student not found with ID: " + cleanSid);
           ConsolePause.waitForEnter();
           continue;
         }

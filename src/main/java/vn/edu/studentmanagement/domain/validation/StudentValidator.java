@@ -1,27 +1,7 @@
 package vn.edu.studentmanagement.domain.validation;
 
-import java.util.Objects;
-
-import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
-
 public class StudentValidator {
   private static final String NAME_PATTERN = "\\p{L}+(?:\\s+\\p{L}+)*";
-
-  private final StudentNormalizer normalizer;
-
-  public StudentValidator() {
-    this(new StudentNormalizer());
-  }
-
-  public StudentValidator(StudentNormalizer normalizer) {
-    this.normalizer = Objects.requireNonNull(normalizer);
-  }
-
-  public void validateStudentData(String id, String name, String gender) {
-    validateNewStudentId(id);
-    validateStudentName(name);
-    validateGender(gender);
-  }
 
   public void validateNewStudentId(String id) {
     validateStudentIdFormat(id);
@@ -30,31 +10,30 @@ public class StudentValidator {
   public void validateStudentIdFormat(String id) {
     validateRequiredStudentId(id);
 
-    String cleanId = normalizer.normalizeStudentId(id);
-    if (cleanId.length() != 11) {
+    if (id.length() != 11) {
       throw new IllegalArgumentException("ID must be exactly 11 characters.");
     }
 
-    if (!cleanId.startsWith("IT")) {
+    if (!id.startsWith("IT")) {
       throw new IllegalArgumentException("ID must start with IT.");
     }
 
-    String majorCode = cleanId.substring(2, 4);
+    String majorCode = id.substring(2, 4);
     if (!majorCode.equals("IT") && !majorCode.equals("DS") && !majorCode.equals("CS")) {
       throw new IllegalArgumentException("ID major code must be IT, DS, or CS.");
     }
 
-    String programCode = cleanId.substring(4, 6);
+    String programCode = id.substring(4, 6);
     if (!programCode.equals("IU") && !programCode.equals("WE")) {
       throw new IllegalArgumentException("ID program code must be IU or WE.");
     }
 
-    int yearCode = parseNumber(cleanId.substring(6, 8), "ID year code must be a number from 21 to 25.");
+    int yearCode = parseNumber(id.substring(6, 8), "ID year code must be a number from 21 to 25.");
     if (yearCode < 21 || yearCode > 25) {
       throw new IllegalArgumentException("ID year code must be a number from 21 to 25.");
     }
 
-    int sequenceNumber = parseNumber(cleanId.substring(8, 11), "ID sequence number must be from 001 to 199.");
+    int sequenceNumber = parseNumber(id.substring(8, 11), "ID sequence number must be from 001 to 199.");
     if (sequenceNumber < 1 || sequenceNumber > 199) {
       throw new IllegalArgumentException("ID sequence number must be from 001 to 199.");
     }
@@ -81,8 +60,7 @@ public class StudentValidator {
       throw new IllegalArgumentException("Gender is required.");
     }
 
-    String g = normalizer.normalizeGender(gender);
-    if (g == null) {
+    if (!gender.equals("MALE") && !gender.equals("FEMALE")) {
       throw new IllegalArgumentException("Gender must be 'Male', 'Female', 'M', or 'F'.");
     }
   }

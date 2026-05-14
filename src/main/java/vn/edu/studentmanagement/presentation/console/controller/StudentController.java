@@ -65,16 +65,19 @@ public class StudentController {
       if (id.equals("0")) {
         return false;
       }
+      studentService.validateNewStudentId(id);
 
       String name = ConsolePrompt.trimmed("\nEnter name (0 to return): ");
       if (name.equals("0")) {
         return false;
       }
+      studentService.validateStudentName(name);
 
       String gender = ConsolePrompt.trimmed("Enter gender (Male/Female/M/F, 0 to return): ");
       if (gender.equals("0")) {
         return false;
       }
+      studentService.validateGender(gender);
 
       Student student = studentService.addStudent(id, name, gender);
       studentView.printAdded(student);

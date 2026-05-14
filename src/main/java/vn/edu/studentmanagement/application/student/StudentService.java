@@ -24,7 +24,7 @@ public class StudentService {
   }
 
   private StudentService(StudentNormalizer normalizer, Repository<Student> studentRepository) {
-    this(new StudentValidator(normalizer), normalizer, studentRepository);
+    this(new StudentValidator(), normalizer, studentRepository);
   }
 
   public StudentService(
@@ -50,17 +50,32 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  public Student addStudent(String id, String name, String gender) {
-    validator.validateStudentData(id, name, gender);
-
+  public void validateNewStudentId(String id) {
     String cleanId = normalizer.normalizeStudentId(id);
-    String cleanName = normalizer.normalizeStudentName(name);
-    String cleanGender = normalizer.normalizeGender(gender);
-    Major major = normalizer.extractMajorFromId(cleanId);
+    validator.validateNewStudentId(cleanId);
 
     if (studentsById.containsKey(cleanId)) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
+  }
+
+  public void validateStudentName(String name) {
+    validator.validateStudentName(normalizer.normalizeStudentName(name));
+  }
+
+  public void validateGender(String gender) {
+    validator.validateGender(normalizer.normalizeGender(gender));
+  }
+
+  public Student addStudent(String id, String name, String gender) {
+    String cleanId = normalizer.normalizeStudentId(id);
+    String cleanName = normalizer.normalizeStudentName(name);
+    String cleanGender = normalizer.normalizeGender(gender);
+
+    validateNormalizedNewStudentId(cleanId);
+    validator.validateStudentName(cleanName);
+    validator.validateGender(cleanGender);
+    Major major = normalizer.extractMajorFromId(cleanId);
 
     Student s = new Student(
         cleanId,
@@ -74,13 +89,23 @@ public class StudentService {
   }
 
   public Student deleteStudentById(String idToDelete) {
-    validator.validateStudentIdFormat(idToDelete);
+    String cleanId = normalizer.normalizeStudentId(idToDelete);
+    validator.validateStudentIdFormat(cleanId);
+    return removeStudentById(cleanId);
+  }
 
+  public Student deleteExistingStudent(Student existingStudent) {
+    Objects.requireNonNull(existingStudent);
+    String cleanId = existingStudent.getId();
+    validator.validateStudentIdFormat(cleanId);
+    return removeStudentById(cleanId);
+  }
+
+  private Student removeStudentById(String cleanId) {
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
 
-    String cleanId = normalizer.normalizeStudentId(idToDelete);
     Student deletedStudent = studentsById.remove(cleanId);
 
     if (deletedStudent != null) {
@@ -109,6 +134,14 @@ public class StudentService {
 
   private void markStudentChanged() {
     studentStore.markChanged(studentsById);
+  }
+
+  private void validateNormalizedNewStudentId(String cleanId) {
+    validator.validateNewStudentId(cleanId);
+
+    if (studentsById.containsKey(cleanId)) {
+      throw new IllegalArgumentException("ID already exists: " + cleanId);
+    }
   }
 
 }
