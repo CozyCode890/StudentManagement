@@ -72,9 +72,9 @@ public class StudentService {
     String cleanName = normalizer.normalizeStudentName(name);
     String cleanGender = normalizer.normalizeGender(gender);
 
-    validateNewStudentId(cleanId);
-    validateStudentName(cleanName);
-    validateGender(cleanGender);
+    validateNormalizedNewStudentId(cleanId);
+    validator.validateStudentName(cleanName);
+    validator.validateGender(cleanGender);
     Major major = normalizer.extractMajorFromId(cleanId);
 
     Student s = new Student(
@@ -91,7 +91,17 @@ public class StudentService {
   public Student deleteStudentById(String idToDelete) {
     String cleanId = normalizer.normalizeStudentId(idToDelete);
     validator.validateStudentIdFormat(cleanId);
+    return removeStudentById(cleanId);
+  }
 
+  public Student deleteExistingStudent(Student existingStudent) {
+    Objects.requireNonNull(existingStudent);
+    String cleanId = existingStudent.getId();
+    validator.validateStudentIdFormat(cleanId);
+    return removeStudentById(cleanId);
+  }
+
+  private Student removeStudentById(String cleanId) {
     if (studentsById.isEmpty()) {
       throw new IllegalArgumentException("Empty list.");
     }
@@ -124,6 +134,14 @@ public class StudentService {
 
   private void markStudentChanged() {
     studentStore.markChanged(studentsById);
+  }
+
+  private void validateNormalizedNewStudentId(String cleanId) {
+    validator.validateNewStudentId(cleanId);
+
+    if (studentsById.containsKey(cleanId)) {
+      throw new IllegalArgumentException("ID already exists: " + cleanId);
+    }
   }
 
 }

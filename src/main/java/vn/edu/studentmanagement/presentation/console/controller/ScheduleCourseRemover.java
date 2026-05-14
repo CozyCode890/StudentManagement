@@ -64,7 +64,7 @@ class ScheduleCourseRemover {
 
   private List<Course> loadCurrentCourses(Student student) {
     try {
-      return scheduleService.findCoursesByStudentId(student.getId());
+      return scheduleService.findCoursesForStudent(student);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ConsoleMessagePrinter.error(e);
       ConsolePause.waitForEnter();
@@ -74,7 +74,7 @@ class ScheduleCourseRemover {
 
   private void removeCourse(Student student, String courseId) {
     try {
-      boolean removed = scheduleService.removeCourse(student.getId(), courseId);
+      boolean removed = scheduleService.removeCourse(student, courseId);
       if (removed) {
         ConsoleMessagePrinter.success("Course removed successfully.");
       } else {

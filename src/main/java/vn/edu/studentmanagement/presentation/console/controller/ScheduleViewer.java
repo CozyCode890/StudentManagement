@@ -28,7 +28,7 @@ class ScheduleViewer {
     }
 
     try {
-      List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student.getId());
+      List<Course> courses = scheduleService.getScheduleSortedByDayThenStart(student);
       scheduleView.printSchedule(student, courses);
       ConsolePause.waitForEnter();
     } catch (IllegalArgumentException | IllegalStateException e) {

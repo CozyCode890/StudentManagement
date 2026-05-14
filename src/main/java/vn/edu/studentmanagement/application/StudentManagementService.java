@@ -19,8 +19,8 @@ public class StudentManagementService {
 
   public DeleteStudentResult deleteStudentById(String studentId) {
     Student existingStudent = studentService.findRequiredById(studentId);
-    boolean removedSchedule = scheduleService.removeScheduleByStudentId(existingStudent.getId());
-    Student deletedStudent = studentService.deleteStudentById(studentId);
+    boolean removedSchedule = scheduleService.removeScheduleForStudent(existingStudent);
+    Student deletedStudent = studentService.deleteExistingStudent(existingStudent);
 
     return new DeleteStudentResult(deletedStudent, removedSchedule);
   }

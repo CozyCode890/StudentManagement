@@ -40,7 +40,8 @@ class StudentDeletionSelector {
   private List<Student> searchCandidates() {
     while (true) {
       try {
-        if (studentService.findAll().isEmpty()) {
+        List<Student> allStudents = studentService.findAll();
+        if (allStudents.isEmpty()) {
           throw new IllegalStateException("Student list is empty.");
         }
 
@@ -52,7 +53,7 @@ class StudentDeletionSelector {
         }
 
         List<Student> candidates = keyword.isEmpty()
-            ? studentService.findAll()
+            ? allStudents
             : studentService.findByName(keyword);
 
         if (candidates.isEmpty()) {
