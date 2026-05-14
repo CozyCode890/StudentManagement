@@ -27,6 +27,17 @@ public class TimeSlot {
     return end;
   }
 
+  public boolean overlaps(TimeSlot other) {
+    if (other == null) {
+      return false;
+    }
+    if (day != other.day) {
+      return false;
+    }
+    return start.compareTo(other.end) < 0
+        && other.start.compareTo(end) < 0;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o)

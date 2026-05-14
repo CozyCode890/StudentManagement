@@ -10,8 +10,6 @@ import vn.edu.studentmanagement.domain.model.TimeSlot;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 
 public class ScheduleValidator {
-  private static final int MAX_COURSES_PER_SCHEDULE = 3;
-
   private final CourseCatalog courseCatalog;
 
   public ScheduleValidator(CourseCatalog courseCatalog) {
@@ -31,36 +29,22 @@ public class ScheduleValidator {
   }
 
   public void validateCourseCanBeAdded(Schedule schedule, String courseId, Course selectedCourse) {
-    for (Course selected : schedule.getSelectedCourses()) {
-      if (selected.getCourseId().equals(courseId)) {
-        throw new IllegalArgumentException("Course already added");
-      }
+    if (schedule.containsCourse(courseId)) {
+      throw new IllegalArgumentException("Course already added");
     }
 
-    if (schedule.selectedCoursesCount() >= MAX_COURSES_PER_SCHEDULE) {
+    if (schedule.isFull()) {
       throw new IllegalArgumentException("Max 3 courses");
     }
 
-    TimeSlot proposedTime = selectedCourse.getTimeSlot();
-    for (Course selected : schedule.getSelectedCourses()) {
-      if (overlap(selected.getTimeSlot(), proposedTime)) {
-        throw new IllegalArgumentException("Conflict time");
-      }
+    if (schedule.hasConflictWith(selectedCourse)) {
+      throw new IllegalArgumentException("Conflict time");
+
     }
 
-    if (!isValidTimeSlot(proposedTime)) {
+    if (!isValidTimeSlot(selectedCourse.getTimeSlot())) {
       throw new IllegalArgumentException("Course scheduled outside valid time slots");
     }
-  }
-
-  public boolean overlap(TimeSlot a, TimeSlot b) {
-    if (a == null || b == null) {
-      return false;
-    }
-    if (a.getDay() != b.getDay()) {
-      return false;
-    }
-    return a.getStart().compareTo(b.getEnd()) < 0 && b.getStart().compareTo(a.getEnd()) < 0;
   }
 
   private boolean isEligibleForMajor(Course course, Major studentMajor) {

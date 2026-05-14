@@ -14,7 +14,6 @@ import vn.edu.studentmanagement.domain.model.CourseType;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.TimeSlot;
 
-
 public class CourseCatalog {
   private final Map<String, Course> byCourseId;
 
@@ -55,30 +54,35 @@ public class CourseCatalog {
     tmp.put("DS202", new Course("DS202", "Statistics", CourseType.MAJOR, Major.DS, friAfternoon));
     tmp.put("DS203", new Course("DS203", "Data Mining", CourseType.MAJOR, Major.DS, satAfternoon));
 
-    byCourseId = tmp;
+    byCourseId = Map.copyOf(tmp);
   }
 
   public Course findByCourseId(String courseId) {
-    if (courseId == null || courseId.isBlank()) return null;
+    if (courseId == null || courseId.isBlank())
+      return null;
     return byCourseId.get(normalizeCourseId(courseId));
   }
 
   public boolean isEligibleForMajor(Course course, Major studentMajor) {
-    if (course == null) return false;
-    if (course.getType() == CourseType.GENERAL) return true;
+    if (course == null)
+      return false;
+    if (course.getType() == CourseType.GENERAL)
+      return true;
     return studentMajor != null && course.getType() == CourseType.MAJOR && course.getMajor() == studentMajor;
   }
 
   public List<Course> getGeneralCourses() {
     List<Course> result = new ArrayList<>();
     for (Course course : byCourseId.values()) {
-      if (course.getType() == CourseType.GENERAL) result.add(course);
+      if (course.getType() == CourseType.GENERAL)
+        result.add(course);
     }
     return result;
   }
 
   public List<Course> getMajorCoursesByStudentMajor(Major major) {
-    if (major == null) return Collections.emptyList();
+    if (major == null)
+      return Collections.emptyList();
     List<Course> result = new ArrayList<>();
     for (Course course : byCourseId.values()) {
       if (course.getType() == CourseType.MAJOR && course.getMajor() == major) {

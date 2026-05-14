@@ -12,7 +12,6 @@ import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Course;
 import vn.edu.studentmanagement.domain.model.Schedule;
 import vn.edu.studentmanagement.domain.model.Student;
-import vn.edu.studentmanagement.domain.model.TimeSlot;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.domain.validation.ScheduleValidator;
@@ -97,10 +96,6 @@ public class ScheduleService {
     this.scheduleValidator = new ScheduleValidator(courseCatalog);
     this.scheduleStore = new ScheduleStore(Objects.requireNonNull(scheduleRepository), studentNormalizer);
     this.schedulesByStudentId = scheduleStore.loadSchedulesByStudentId();
-  }
-
-  public boolean overlap(TimeSlot a, TimeSlot b) {
-    return scheduleValidator.overlap(a, b);
   }
 
   public AddCourseResult addCourse(String studentId, String courseId) {
