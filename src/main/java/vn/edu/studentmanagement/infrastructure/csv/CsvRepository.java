@@ -1,13 +1,33 @@
 package vn.edu.studentmanagement.infrastructure.csv;
 
-import java.util.List;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
-public interface CsvRepository<T> {
-  void ensureFileExists();
+import vn.edu.studentmanagement.application.store.Repository;
+import vn.edu.studentmanagement.application.store.RepositoryException;
 
-  List<T> readAll();
+public abstract class CsvRepository<T> implements Repository<T> {
+  private final Path csvPath;
+  private final String itemLabel;
 
-  void writeAll(List<T> items);
+  protected CsvRepository(Path csvPath, String itemLabel) {
+    this.csvPath = csvPath;
+    this.itemLabel = itemLabel;
+  }
 
-  void append(T item);
+  protected Path getCsvPath() {
+    return csvPath;
+  }
+
+  protected void ensureFileExists() {
+    try {
+      Files.createDirectories(csvPath.getParent());
+      if (Files.notExists(csvPath)) {
+        Files.createFile(csvPath);
+      }
+    } catch (IOException e) {
+      throw new RepositoryException("Failed to create/open " + itemLabel + " CSV file.", e);
+    }
+  }
 }

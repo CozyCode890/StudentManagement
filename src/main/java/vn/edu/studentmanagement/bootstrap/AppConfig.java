@@ -1,5 +1,6 @@
 package vn.edu.studentmanagement.bootstrap;
 
+import vn.edu.studentmanagement.application.StudentManagementService;
 import vn.edu.studentmanagement.application.schedule.ScheduleService;
 import vn.edu.studentmanagement.application.student.StudentService;
 import vn.edu.studentmanagement.domain.catalog.CourseCatalog;
@@ -12,12 +13,11 @@ public class AppConfig {
     CsvStudentRepository studentRepository = new CsvStudentRepository();
     CourseCatalog courseCatalog = new CourseCatalog();
     CsvScheduleRepository scheduleRepository = new CsvScheduleRepository(courseCatalog);
-    studentRepository.ensureFileExists();
-    scheduleRepository.ensureFileExists();
 
     StudentService studentService = new StudentService(studentRepository);
     ScheduleService scheduleService = new ScheduleService(studentService, courseCatalog, scheduleRepository);
+    StudentManagementService studentManagementService = new StudentManagementService(studentService, scheduleService);
 
-    return new MainController(studentService, scheduleService, courseCatalog);
+    return new MainController(studentService, scheduleService, studentManagementService);
   }
 }

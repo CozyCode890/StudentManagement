@@ -5,7 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import vn.edu.studentmanagement.domain.model.Course;
-import vn.edu.studentmanagement.domain.model.CourseDefinition;
 
 public class CourseTableRenderer {
   private CourseTableRenderer() {
@@ -25,9 +24,9 @@ public class CourseTableRenderer {
     ConsoleTable.print(List.of("ID", "Course Name", "Day", "Time"), rows);
   }
 
-  public static void renderDefinitions(List<CourseDefinition> definitions) {
+  public static void renderDefinitions(List<Course> definitions) {
     List<List<String>> rows = new ArrayList<>();
-    for (CourseDefinition definition : definitions) {
+    for (Course definition : definitions) {
       rows.add(Arrays.asList(
           definition.getCourseId(),
           definition.getName(),

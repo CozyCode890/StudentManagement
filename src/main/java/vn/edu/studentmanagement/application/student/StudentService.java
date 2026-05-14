@@ -1,19 +1,17 @@
 package vn.edu.studentmanagement.application.student;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import vn.edu.studentmanagement.application.store.Repository;
 import vn.edu.studentmanagement.domain.model.Gender;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.Student;
 import vn.edu.studentmanagement.domain.normalization.StudentNormalizer;
 import vn.edu.studentmanagement.domain.validation.StudentValidator;
-import vn.edu.studentmanagement.infrastructure.csv.CsvRepository;
-import vn.edu.studentmanagement.infrastructure.csv.CsvStudentRepository;
 
 public class StudentService {
   private final StudentValidator validator;
@@ -21,22 +19,18 @@ public class StudentService {
   private final StudentStore studentStore;
   private final Map<String, Student> studentsById;
 
-  public StudentService() {
-    this(new CsvStudentRepository());
-  }
-
-  public StudentService(CsvRepository<Student> studentRepository) {
+  public StudentService(Repository<Student> studentRepository) {
     this(new StudentNormalizer(), Objects.requireNonNull(studentRepository));
   }
 
-  private StudentService(StudentNormalizer normalizer, CsvRepository<Student> studentRepository) {
+  private StudentService(StudentNormalizer normalizer, Repository<Student> studentRepository) {
     this(new StudentValidator(normalizer), normalizer, studentRepository);
   }
 
   public StudentService(
       StudentValidator validator,
       StudentNormalizer normalizer,
-      CsvRepository<Student> studentRepository) {
+      Repository<Student> studentRepository) {
     this.validator = Objects.requireNonNull(validator);
     this.normalizer = Objects.requireNonNull(normalizer);
     this.studentStore = new StudentStore(Objects.requireNonNull(studentRepository), normalizer);
@@ -47,34 +41,8 @@ public class StudentService {
     return new ArrayList<>(studentsById.values());
   }
 
-  public List<Student> displayAll() {
-    return new ArrayList<>(getStudents());
-  }
-
   public List<Student> findAll() {
-    return displayAll();
-  }
-
-  public List<Student> displayAllSortedById() {
-    return getStudents().stream()
-        .sorted(Comparator.comparing(Student::getId))
-        .collect(Collectors.toList());
-  }
-
-  public List<Student> filterStudents(String query) {
-    if (query == null || query.trim().isEmpty()) {
-      return displayAll();
-    }
-
-    String lowerQuery = query.toLowerCase().trim();
-
-    return getStudents().stream()
-        .filter(student ->
-            String.valueOf(student.getId()).contains(lowerQuery) ||
-            (student.getLastName() != null && student.getLastName().toLowerCase().contains(lowerQuery)) ||
-            (student.getGender() != null && student.getGender().toString().toLowerCase().equalsIgnoreCase(lowerQuery)) ||
-            (student.getMajor() != null && student.getMajor().toString().toLowerCase().contains(lowerQuery)))
-        .collect(Collectors.toList());
+    return new ArrayList<>(getStudents());
   }
 
   public List<Student> findByName(String keyword) {
@@ -86,20 +54,6 @@ public class StudentService {
         .collect(Collectors.toList());
   }
 
-  public List<Student> displayAllSortedByLastName() {
-    return getStudents().stream()
-        .sorted(Comparator.comparing(Student::getLastName, Comparator.nullsLast(Comparator.naturalOrder())))
-        .collect(Collectors.toList());
-  }
-
-  public void validateStudentId(String id) {
-    validator.validateNewStudentId(id);
-  }
-
-  public void validateStudentName(String name) {
-    validator.validateStudentName(name);
-  }
-
   public Student addStudent(String id, String name, String gender) {
     validator.validateStudentData(id, name, gender);
 
@@ -108,7 +62,7 @@ public class StudentService {
     String cleanGender = normalizer.normalizeGender(gender);
     Major major = normalizer.extractMajorFromId(cleanId);
 
-    if (filterById(cleanId) != null) {
+    if (findById(cleanId) != null) {
       throw new IllegalArgumentException("ID already exists: " + cleanId);
     }
 
@@ -116,8 +70,7 @@ public class StudentService {
         cleanId,
         cleanName,
         major,
-        Gender.valueOf(cleanGender),
-        0);
+        Gender.valueOf(cleanGender));
     studentsById.put(cleanId, s);
     markStudentChanged();
 
@@ -146,18 +99,6 @@ public class StudentService {
     return studentsById.get(normalizeStudentId(id));
   }
 
-  public Student filterById(String id) {
-    return findById(id);
-  }
-
-  public String normalizeStudentId(String id) {
-    return normalizer.normalizeStudentId(id);
-  }
-
-  public String normalizeStudentName(String name) {
-    return normalizer.normalizeStudentName(name);
-  }
-
   public void flushPendingChanges() {
     studentStore.flushPendingChanges(studentsById);
   }
@@ -165,4 +106,13 @@ public class StudentService {
   private void markStudentChanged() {
     studentStore.markChanged(studentsById);
   }
+
+  private String normalizeStudentId(String id) {
+    return normalizer.normalizeStudentId(id);
+  }
+
+  private String normalizeStudentName(String name) {
+    return normalizer.normalizeStudentName(name);
+  }
+
 }

@@ -54,15 +54,12 @@ public class StudentListController {
   private void searchByName() {
     String keyword = ConsoleIO.prompt("Enter name keyword: ");
     try {
-      studentService.validateStudentName(keyword);
+      List<Student> students = studentService.findByName(keyword);
+      showPaginated(students, "No students matched your search.");
     } catch (IllegalArgumentException e) {
       ConsoleMessagePrinter.error(e);
       ConsolePause.waitForEnter();
-      return;
     }
-
-    List<Student> students = studentService.findByName(keyword);
-    showPaginated(students, "No students matched your search.");
   }
 
   public void showPaginated(List<Student> students, String emptyMessage) {

@@ -6,23 +6,20 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 
 import vn.edu.studentmanagement.domain.model.Course;
-import vn.edu.studentmanagement.domain.model.CourseDefinition;
 import vn.edu.studentmanagement.domain.model.CourseType;
 import vn.edu.studentmanagement.domain.model.Major;
 import vn.edu.studentmanagement.domain.model.TimeSlot;
-
+import vn.edu.studentmanagement.domain.normalization.CourseNormalizer;
 
 public class CourseCatalog {
-  private final Map<String, CourseDefinition> byCourseId;
-  private final Map<String, TimeSlot> timeSlotsByCourseId;
+  private final Map<String, Course> byCourseId;
+  private final CourseNormalizer courseNormalizer = new CourseNormalizer();
 
   public CourseCatalog() {
-    Map<String, CourseDefinition> tmp = new LinkedHashMap<>();
-    Map<String, TimeSlot> slots = new LinkedHashMap<>();
+    Map<String, Course> tmp = new LinkedHashMap<>();
 
     TimeSlot monMorning = new TimeSlot(DayOfWeek.MONDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
     TimeSlot monMid = new TimeSlot(DayOfWeek.MONDAY, LocalTime.of(10, 0), LocalTime.of(11, 30));
@@ -41,103 +38,67 @@ public class CourseCatalog {
     TimeSlot satMorning = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(8, 0), LocalTime.of(9, 30));
     TimeSlot satAfternoon = new TimeSlot(DayOfWeek.SATURDAY, LocalTime.of(14, 0), LocalTime.of(15, 30));
 
-    tmp.put("GEN101", new CourseDefinition("GEN101", "Calculus", CourseType.GENERAL, null));
-    slots.put("GEN101", monMorning);
-    tmp.put("GEN102", new CourseDefinition("GEN102", "Physics", CourseType.GENERAL, null));
-    slots.put("GEN102", tueMorning);
-    tmp.put("GEN103", new CourseDefinition("GEN103", "Chemistry", CourseType.GENERAL, null));
-    slots.put("GEN103", wedMorning);
-    tmp.put("GEN104", new CourseDefinition("GEN104", "HCM Thought", CourseType.GENERAL, null));
-    slots.put("GEN104", thurMorning);
+    tmp.put("GEN101", new Course("GEN101", "Calculus", CourseType.GENERAL, null, monMorning));
+    tmp.put("GEN102", new Course("GEN102", "Physics", CourseType.GENERAL, null, tueMorning));
+    tmp.put("GEN103", new Course("GEN103", "Chemistry", CourseType.GENERAL, null, wedMorning));
+    tmp.put("GEN104", new Course("GEN104", "HCM Thought", CourseType.GENERAL, null, thurMorning));
 
-    tmp.put("IT201", new CourseDefinition("IT201", "Programming Fundamentals", CourseType.MAJOR, Major.IT));
-    slots.put("IT201", monMid);
-    tmp.put("IT202", new CourseDefinition("IT202", "Database Systems", CourseType.MAJOR, Major.IT));
-    slots.put("IT202", wedMid);
-    tmp.put("IT203", new CourseDefinition("IT203", "Data Structures", CourseType.MAJOR, Major.IT));
-    slots.put("IT203", friMid);
+    tmp.put("IT201", new Course("IT201", "Programming Fundamentals", CourseType.MAJOR, Major.IT, monMid));
+    tmp.put("IT202", new Course("IT202", "Database Systems", CourseType.MAJOR, Major.IT, wedMid));
+    tmp.put("IT203", new Course("IT203", "Data Structures", CourseType.MAJOR, Major.IT, friMid));
 
-    tmp.put("CS201", new CourseDefinition("CS201", "Algorithms", CourseType.MAJOR, Major.CS));
-    slots.put("CS201", monAfternoon);
-    tmp.put("CS202", new CourseDefinition("CS202", "Software Engineering", CourseType.MAJOR, Major.CS));
-    slots.put("CS202", thurMid);
-    tmp.put("CS203", new CourseDefinition("CS203", "Computer Networks", CourseType.MAJOR, Major.CS));
-    slots.put("CS203", satMorning);
+    tmp.put("CS201", new Course("CS201", "Algorithms", CourseType.MAJOR, Major.CS, monAfternoon));
+    tmp.put("CS202", new Course("CS202", "Software Engineering", CourseType.MAJOR, Major.CS, thurMid));
+    tmp.put("CS203", new Course("CS203", "Computer Networks", CourseType.MAJOR, Major.CS, satMorning));
 
-    tmp.put("DS201", new CourseDefinition("DS201", "Machine Learning Basics", CourseType.MAJOR, Major.DS));
-    slots.put("DS201", tueMid);
-    tmp.put("DS202", new CourseDefinition("DS202", "Statistics", CourseType.MAJOR, Major.DS));
-    slots.put("DS202", friAfternoon);
-    tmp.put("DS203", new CourseDefinition("DS203", "Data Mining", CourseType.MAJOR, Major.DS));
-    slots.put("DS203", satAfternoon);
+    tmp.put("DS201", new Course("DS201", "Machine Learning Basics", CourseType.MAJOR, Major.DS, tueMid));
+    tmp.put("DS202", new Course("DS202", "Statistics", CourseType.MAJOR, Major.DS, friAfternoon));
+    tmp.put("DS203", new Course("DS203", "Data Mining", CourseType.MAJOR, Major.DS, satAfternoon));
 
-    byCourseId = tmp;
-    timeSlotsByCourseId = slots;
+    byCourseId = Collections.unmodifiableMap(new LinkedHashMap<>(tmp));
   }
 
-  public CourseDefinition findByCourseId(String courseId) {
-    if (courseId == null || courseId.isBlank()) return null;
-    return byCourseId.get(normalizeCourseId(courseId));
+  public Course findByCourseId(String courseId) {
+    if (courseId == null || courseId.isBlank())
+      return null;
+    return byCourseId.get(courseNormalizer.normalizeCourseId(courseId));
   }
 
-  public Course createScheduledCourse(String courseId) {
-    CourseDefinition def = findByCourseId(courseId);
-    if (def == null) return null;
-
-    TimeSlot timeSlot = timeSlotsByCourseId.get(def.getCourseId());
-    if (timeSlot == null) {
-      throw new IllegalStateException("Course has no scheduled time slot: " + def.getCourseId());
-    }
-
-    return new Course(
-        def.getCourseId(),
-        def.getName(),
-        def.getType(),
-        def.getMajor(),
-        timeSlot);
+  public boolean isEligibleForMajor(Course course, Major studentMajor) {
+    if (course == null)
+      return false;
+    if (course.getType() == CourseType.GENERAL)
+      return true;
+    return studentMajor != null && course.getType() == CourseType.MAJOR && course.getMajor() == studentMajor;
   }
 
-  public boolean isEligibleForMajor(CourseDefinition def, Major studentMajor) {
-    if (def == null) return false;
-    if (def.getType() == CourseType.GENERAL) return true;
-    return studentMajor != null && def.getType() == CourseType.MAJOR && def.getMajor() == studentMajor;
-  }
-
-  public List<CourseDefinition> getGeneralCourses() {
-    List<CourseDefinition> result = new ArrayList<>();
-    for (CourseDefinition def : byCourseId.values()) {
-      if (def.getType() == CourseType.GENERAL) result.add(def);
+  public List<Course> getGeneralCourses() {
+    List<Course> result = new ArrayList<>();
+    for (Course course : byCourseId.values()) {
+      if (course.getType() == CourseType.GENERAL)
+        result.add(course);
     }
     return result;
   }
 
-  public List<CourseDefinition> getMajorCoursesByStudentMajor(Major major) {
-    if (major == null) return Collections.emptyList();
-    List<CourseDefinition> result = new ArrayList<>();
-    for (CourseDefinition def : byCourseId.values()) {
-      if (def.getType() == CourseType.MAJOR && def.getMajor() == major) {
-        result.add(def);
+  public List<Course> getMajorCoursesByStudentMajor(Major major) {
+    if (major == null)
+      return Collections.emptyList();
+    List<Course> result = new ArrayList<>();
+    for (Course course : byCourseId.values()) {
+      if (course.getType() == CourseType.MAJOR && course.getMajor() == major) {
+        result.add(course);
       }
     }
     return result;
   }
-
-  public List<CourseDefinition> getAvailableCoursesForStudentMajor(Major major) {
-    List<CourseDefinition> all = new ArrayList<>();
-    for (CourseDefinition def : byCourseId.values()) {
-      if (isEligibleForMajor(def, major)) {
-        all.add(def);
-      }
-    }
-    return all;
-  }
-
 
   public List<TimeSlot> getValidTimeSlots() {
-    return new ArrayList<>(timeSlotsByCourseId.values());
+    List<TimeSlot> result = new ArrayList<>();
+    for (Course course : byCourseId.values()) {
+      result.add(course.getTimeSlot());
+    }
+    return result;
   }
 
-  private String normalizeCourseId(String courseId) {
-    return courseId.trim().toUpperCase(Locale.ROOT);
-  }
 }

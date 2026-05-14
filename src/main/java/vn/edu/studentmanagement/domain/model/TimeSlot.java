@@ -5,11 +5,9 @@ import java.time.LocalTime;
 import java.util.Objects;
 
 public class TimeSlot {
-  private DayOfWeek day;
-  private LocalTime start;
-  private LocalTime end;
-
-  public TimeSlot() {}
+  private final DayOfWeek day;
+  private final LocalTime start;
+  private final LocalTime end;
 
   public TimeSlot(DayOfWeek day, LocalTime start, LocalTime end) {
     this.day = day;
@@ -21,30 +19,31 @@ public class TimeSlot {
     return day;
   }
 
-  public void setDay(DayOfWeek day) {
-    this.day = day;
-  }
-
   public LocalTime getStart() {
     return start;
-  }
-
-  public void setStart(LocalTime start) {
-    this.start = start;
   }
 
   public LocalTime getEnd() {
     return end;
   }
 
-  public void setEnd(LocalTime end) {
-    this.end = end;
+  public boolean overlaps(TimeSlot other) {
+    if (other == null) {
+      return false;
+    }
+    if (day != other.day) {
+      return false;
+    }
+    return start.compareTo(other.end) < 0
+        && other.start.compareTo(end) < 0;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (!(o instanceof TimeSlot other)) return false;
+    if (this == o)
+      return true;
+    if (!(o instanceof TimeSlot other))
+      return false;
     return day == other.day
         && Objects.equals(start, other.start)
         && Objects.equals(end, other.end);

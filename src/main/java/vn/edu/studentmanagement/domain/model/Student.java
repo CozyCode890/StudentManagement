@@ -3,60 +3,33 @@ package vn.edu.studentmanagement.domain.model;
 import java.util.Objects;
 
 public class Student {
-  private String id;
-  private String fullName;
-  private Major major;
-  private Gender gender;
-  private int age;
+  private final String id;
+  private final String fullName;
+  private final Major major;
+  private final Gender gender;
 
-  public Student(String id, String fullName, Major major, Gender gender, int age) {
+  public Student(String id, String fullName, Major major, Gender gender) {
     this.id = id;
     this.fullName = fullName;
     this.major = major;
     this.gender = gender;
-    this.age = age;
   }
 
   public String getId() {
     return id;
   }
 
-  public void setId(String id) {
-    this.id = id;
-  }
-
   public String getFullName() {
     return fullName;
-  }
-
-  public void setFullName(String fullName) {
-    this.fullName = fullName;
   }
 
   public Gender getGender() {
     return gender;
   }
 
-  public void setGender(Gender gender) {
-    this.gender = gender;
-  }
-
   public Major getMajor() {
     return major;
   }
-
-  public void setMajor(Major major) {
-    this.major = major;
-  }
-
-  public int getAge() {
-    return age;
-  }
-
-  public void setAge(int age) {
-    this.age = age;
-  }
-
 
   public String getLastName() {
     if (fullName == null) {
