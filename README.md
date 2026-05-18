@@ -98,13 +98,14 @@ Examples:
 ITITIU21001
 ITDSWE22015
 ITCSIU25199
+ITITDK21001
 ```
 
 Student ID rules:
 
 - Must start with `IT`.
 - Major code: `IT`, `CS`, or `DS`.
-- Program code: `IU` or `WE`.
+- Program code: `IU`, `WE`, or `DK`.
 - Year code: from `21` to `25`.
 - Sequence number: from `001` to `199`.
 

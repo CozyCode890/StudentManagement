@@ -10,12 +10,12 @@ public class StudentTableRenderer {
   private StudentTableRenderer() {
   }
 
-  public static void render(List<Student> students, int startStt) {
+  public static void render(List<Student> students, int startNumber) {
     List<List<String>> rows = new ArrayList<>();
-    int currentStt = startStt;
+    int currentNumber = startNumber;
     for (Student student : students) {
       rows.add(Arrays.asList(
-          String.valueOf(currentStt++),
+          String.valueOf(currentNumber++),
           student.getId(),
           student.getFullName(),
           String.valueOf(student.getGender()),

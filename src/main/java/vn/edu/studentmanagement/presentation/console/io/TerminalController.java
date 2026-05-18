@@ -7,14 +7,14 @@ public class TerminalController {
   }
 
   static boolean enableRawMode() {
-    return runStty("raw -echo");
+    return runNumbery("raw -echo");
   }
 
   static void disableRawMode() {
-    runStty("sane");
+    runNumbery("sane");
   }
 
-  private static boolean runStty(String args) {
+  private static boolean runNumbery(String args) {
     try {
       Process process = new ProcessBuilder("sh", "-c", "stty " + args + " < /dev/tty").start();
       return process.waitFor() == 0;

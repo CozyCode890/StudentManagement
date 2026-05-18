@@ -24,8 +24,8 @@ public class StudentValidator {
     }
 
     String programCode = id.substring(4, 6);
-    if (!programCode.equals("IU") && !programCode.equals("WE")) {
-      throw new IllegalArgumentException("ID program code must be IU or WE.");
+    if (!programCode.equals("IU") && !programCode.equals("WE") && !programCode.equals("DK")) {
+      throw new IllegalArgumentException("ID program code must be IU, WE, or DK.");
     }
 
     int yearCode = parseNumber(id.substring(6, 8), "ID year code must be a number from 21 to 25.");

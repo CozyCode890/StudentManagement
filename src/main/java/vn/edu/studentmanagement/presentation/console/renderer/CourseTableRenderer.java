@@ -24,13 +24,13 @@ public class CourseTableRenderer {
     ConsoleTable.print(List.of("ID", "Course Name", "Day", "Time"), rows);
   }
 
-  public static void renderNumberedCourses(List<Course> courses, int startStt) {
+  public static void renderNumberedCourses(List<Course> courses, int startNumber) {
     List<List<String>> rows = new ArrayList<>();
-    int currentStt = startStt;
+    int currentNumber = startNumber;
     for (Course course : courses) {
       String time = course.getTimeSlot().getStart() + "-" + course.getTimeSlot().getEnd();
       rows.add(Arrays.asList(
-          String.valueOf(currentStt++),
+          String.valueOf(currentNumber++),
           course.getCourseId(),
           course.getName(),
           String.valueOf(course.getTimeSlot().getDay()),
