@@ -12,6 +12,7 @@ class StudentValidatorTest {
   @Test
   void validateNewStudentIdAcceptsValidId() {
     assertDoesNotThrow(() -> validator.validateNewStudentId("ITITIU21001"));
+    assertDoesNotThrow(() -> validator.validateNewStudentId("ITITDK21001"));
   }
 
   @Test
